@@ -1,0 +1,10 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Backups generados por el instalador
+backups/
+
+# Temporal
+*.tmp
+*.bak
