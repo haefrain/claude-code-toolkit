@@ -3,6 +3,14 @@
 # ║           Claude Code Toolkit — Instalador Ubuntu               ║
 # ║  Ejecutar: bash install.sh                                       ║
 # ╚══════════════════════════════════════════════════════════════════╝
+#
+# Seguro con configuraciones pre-existentes:
+#   - Backup automático antes de tocar nada
+#   - CLAUDE.md: opción reemplazar / mergear / conservar
+#   - settings.json: hooks se APPENDEAN (no reemplazan) si ya existen
+#   - Permisos: solo se agregan los que faltan, nunca se eliminan
+#   - Scripts/commands: solo sobreescribe los del toolkit (los tuyos propios se conservan)
+#
 set -euo pipefail
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -31,22 +39,26 @@ step "Verificando prerequisitos"
 
 check_cmd() {
   if command -v "$1" >/dev/null 2>&1; then
-    ok "$1 $(command -v "$1")"
+    ok "$1 ($(command -v "$1"))"
   else
     warn "$1 no encontrado — instalando..."
     case "$1" in
-      jq) sudo apt-get install -y jq >/dev/null 2>&1 && ok "jq instalado" || fail "No se pudo instalar jq. Corré: sudo apt install jq" ;;
-      git) sudo apt-get install -y git >/dev/null 2>&1 && ok "git instalado" || fail "No se pudo instalar git" ;;
-      gh)
-        warn "GitHub CLI (gh) no encontrado."
-        info "Instalando gh..."
-        (type -p curl >/dev/null || sudo apt install curl -y) && \
-        curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg && \
-        sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg && \
-        echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null && \
-        sudo apt update >/dev/null 2>&1 && sudo apt install gh -y >/dev/null 2>&1 && ok "gh instalado" || warn "gh no instalado — funcionalidad de issues limitada"
-        ;;
+      jq)   sudo apt-get install -y jq   >/dev/null 2>&1 && ok "jq instalado"   || fail "No se pudo instalar jq. Corré: sudo apt install jq" ;;
+      git)  sudo apt-get install -y git  >/dev/null 2>&1 && ok "git instalado"  || fail "No se pudo instalar git" ;;
       tree) sudo apt-get install -y tree >/dev/null 2>&1 && ok "tree instalado" || warn "tree no instalado (opcional)" ;;
+      gh)
+        info "Instalando GitHub CLI (gh)..."
+        (type -p curl >/dev/null || sudo apt install curl -y) \
+        && curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg \
+           | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
+        && sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg \
+        && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" \
+           | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
+        && sudo apt update >/dev/null 2>&1 \
+        && sudo apt install gh -y >/dev/null 2>&1 \
+        && ok "gh instalado" \
+        || warn "gh no instalado — funcionalidad de issues/PRs limitada"
+        ;;
     esac
   fi
 }
@@ -57,19 +69,21 @@ check_cmd gh
 check_cmd tree
 
 # ────────────────────────────────────────────────
-# 2. BACKUP
+# 2. BACKUP (siempre, antes de tocar nada)
 # ────────────────────────────────────────────────
 step "Creando backup de configuración existente"
 mkdir -p "$BACKUP_DIR"
 
 backup_if_exists() {
-  [[ -e "$1" ]] && cp -r "$1" "$BACKUP_DIR/" && info "Backup: $1" || true
+  if [[ -e "$1" ]]; then
+    cp -rL "$1" "$BACKUP_DIR/" 2>/dev/null && info "Backup: $1" || true
+  fi
 }
 backup_if_exists "$CLAUDE_DIR/settings.json"
 backup_if_exists "$CLAUDE_DIR/CLAUDE.md"
 backup_if_exists "$CLAUDE_DIR/commands"
 backup_if_exists "$CLAUDE_DIR/scripts"
-ok "Backup en $BACKUP_DIR"
+ok "Backup guardado en $BACKUP_DIR"
 
 # ────────────────────────────────────────────────
 # 3. RTK — Rust Token Killer
@@ -79,14 +93,10 @@ mkdir -p "$CLAUDE_LOCAL_BIN"
 cp "$REPO_DIR/bin/rtk" "$CLAUDE_LOCAL_BIN/rtk"
 chmod +x "$CLAUDE_LOCAL_BIN/rtk"
 
-# Agregar ~/.local/bin al PATH si no está
 add_to_path() {
   local rc_file="$1"
-  local export_line='export PATH="$HOME/.local/bin:$PATH"'
   if [[ -f "$rc_file" ]] && ! grep -q '\.local/bin' "$rc_file" 2>/dev/null; then
-    echo "" >> "$rc_file"
-    echo "# Claude Code Toolkit — RTK" >> "$rc_file"
-    echo "$export_line" >> "$rc_file"
+    { echo ""; echo "# Claude Code Toolkit — RTK"; echo 'export PATH="$HOME/.local/bin:$PATH"'; } >> "$rc_file"
     info "PATH actualizado en $rc_file"
   fi
 }
@@ -97,54 +107,89 @@ export PATH="$HOME/.local/bin:$PATH"
 if rtk --version >/dev/null 2>&1; then
   ok "RTK instalado: $(rtk --version)"
 else
-  warn "RTK instalado pero no en PATH de esta sesión. Reabrí la terminal o corré: export PATH=\"\$HOME/.local/bin:\$PATH\""
+  warn "RTK instalado pero requiere nueva terminal. Corré: export PATH=\"\$HOME/.local/bin:\$PATH\""
 fi
 
 # ────────────────────────────────────────────────
-# 4. SCRIPTS
+# 4. SCRIPTS (solo sobreescribe los del toolkit)
 # ────────────────────────────────────────────────
 step "Instalando scripts (~/.claude/scripts/)"
 mkdir -p "$CLAUDE_DIR/scripts"
 cp "$REPO_DIR/scripts/"*.sh "$CLAUDE_DIR/scripts/"
 chmod +x "$CLAUDE_DIR/scripts/"*.sh
-ok "$(ls "$CLAUDE_DIR/scripts/"*.sh | wc -l) scripts instalados"
+ok "$(ls "$CLAUDE_DIR/scripts/"*.sh | wc -l) scripts instalados (tus scripts custom con otros nombres se conservan)"
 
 # ────────────────────────────────────────────────
-# 5. SLASH COMMANDS
+# 5. SLASH COMMANDS (solo sobreescribe los del toolkit)
 # ────────────────────────────────────────────────
 step "Instalando slash commands (~/.claude/commands/)"
 mkdir -p "$CLAUDE_DIR/commands"
 cp "$REPO_DIR/commands/"*.md "$CLAUDE_DIR/commands/"
-ok "$(ls "$CLAUDE_DIR/commands/"*.md | wc -l) comandos instalados"
+ok "$(ls "$CLAUDE_DIR/commands/"*.md | wc -l) comandos instalados (los tuyos con otros nombres se conservan)"
 
 # ────────────────────────────────────────────────
-# 6. CLAUDE.MD — config global
+# 6. CLAUDE.MD — merge inteligente
 # ────────────────────────────────────────────────
-step "Instalando CLAUDE.md y archivos de referencia"
+step "Configurando CLAUDE.md"
 
-install_config() {
-  local src="$REPO_DIR/config/$1"
-  local dst="$CLAUDE_DIR/$1"
-  if [[ -f "$dst" ]]; then
-    warn "$1 ya existe. ¿Reemplazar? [s/N] "
-    read -r -t 10 answer || answer="n"
-    [[ "${answer,,}" == "s" ]] && cp "$src" "$dst" && ok "$1 reemplazado" || info "$1 conservado (backup en $BACKUP_DIR)"
-  else
-    cp "$src" "$dst"
-    ok "$1 instalado"
-  fi
-}
-
-# Los archivos de referencia siempre se instalan (no conflicto)
-cp "$REPO_DIR/config/claude-issues.md" "$CLAUDE_DIR/claude-issues.md"
+# Los archivos de referencia siempre se instalan (no hay conflicto posible)
+cp "$REPO_DIR/config/claude-issues.md"  "$CLAUDE_DIR/claude-issues.md"
 cp "$REPO_DIR/config/claude-toolkit.md" "$CLAUDE_DIR/claude-toolkit.md"
-cp "$REPO_DIR/config/RTK.md" "$CLAUDE_DIR/RTK.md"
-ok "Archivos de referencia instalados"
+cp "$REPO_DIR/config/RTK.md"            "$CLAUDE_DIR/RTK.md"
+ok "Archivos de referencia instalados (claude-issues.md, claude-toolkit.md, RTK.md)"
 
-install_config "CLAUDE.md"
+CLAUDE_MD="$CLAUDE_DIR/CLAUDE.md"
+TOOLKIT_IMPORTS="@claude-issues.md
+@claude-toolkit.md"
+
+if [[ ! -f "$CLAUDE_MD" ]]; then
+  # Instalación limpia: copiar directo
+  cp "$REPO_DIR/config/CLAUDE.md" "$CLAUDE_MD"
+  ok "CLAUDE.md instalado (limpio)"
+
+elif grep -q "@claude-toolkit.md" "$CLAUDE_MD" 2>/dev/null; then
+  # Ya tiene nuestros imports: actualizar solo los archivos de referencia (ya hecho arriba)
+  info "CLAUDE.md ya tiene los @imports del toolkit — sin cambios en CLAUDE.md"
+
+else
+  # CLAUDE.md pre-existente sin nuestros imports: preguntar
+  echo ""
+  echo -e "${YELLOW}CLAUDE.md pre-existente detectado. ¿Qué hacer?${NC}"
+  echo "  [1] Mergear  — agregar @imports al final de tu CLAUDE.md (recomendado)"
+  echo "  [2] Reemplazar — instalar el CLAUDE.md del toolkit (tu contenido se pierde)"
+  echo "  [3] Conservar  — no tocar tu CLAUDE.md (los scripts funcionan igual, sin CLAUDE.md del toolkit)"
+  echo ""
+  printf "Opción [1/2/3, default=1]: "
+  read -r -t 30 claude_opt || claude_opt="1"
+  claude_opt="${claude_opt:-1}"
+
+  case "$claude_opt" in
+    2)
+      cp "$REPO_DIR/config/CLAUDE.md" "$CLAUDE_MD"
+      ok "CLAUDE.md reemplazado (backup en $BACKUP_DIR)"
+      ;;
+    3)
+      info "CLAUDE.md conservado sin cambios."
+      warn "Los archivos claude-issues.md y claude-toolkit.md están instalados pero no referenciados."
+      warn "Para activarlos, agregá al final de tu CLAUDE.md:"
+      echo "  @claude-issues.md"
+      echo "  @claude-toolkit.md"
+      ;;
+    *)  # 1 o cualquier otra cosa
+      # Agregar @imports al final si no existen ya
+      {
+        echo ""
+        echo "# ── Claude Code Toolkit (auto-instalado) ──"
+        echo "@claude-issues.md"
+        echo "@claude-toolkit.md"
+      } >> "$CLAUDE_MD"
+      ok "CLAUDE.md mergeado — @imports agregados al final de tu configuración existente"
+      ;;
+  esac
+fi
 
 # ────────────────────────────────────────────────
-# 7. SETTINGS.JSON — merge hooks + permisos
+# 7. SETTINGS.JSON — merge seguro (append, nunca reemplaza)
 # ────────────────────────────────────────────────
 step "Configurando settings.json"
 SETTINGS="$CLAUDE_DIR/settings.json"
@@ -155,103 +200,96 @@ if [[ ! -f "$SETTINGS" ]]; then
   info "settings.json creado desde cero"
 fi
 
-# Permisos a agregar
+# ── 7a. Permisos: solo agregar los que faltan ──
 SCRIPT_ALLOW=(
-  'Bash(bash /home/'"$USER"'/.claude/scripts/*)'
-  'Bash(bash -n /home/'"$USER"'/.claude/scripts/*)'
-  'Bash(gh:*)'
-  'Bash(git:*)'
-  'Bash(jq:*)'
-  'Bash(column:*)'
-  'Bash(sort:*)'
-  'Bash(uniq:*)'
-  'Bash(wc:*)'
-  'Bash(awk:*)'
-  'Bash(sed:*)'
-  'Bash(find:*)'
-  'Bash(grep:*)'
-  'Bash(basename:*)'
-  'Bash(dirname:*)'
-  'Bash(date:*)'
-  'Bash(tr:*)'
-  'Bash(head:*)'
-  'Bash(tail:*)'
-  'Bash(cut:*)'
-  'Bash(cat:*)'
-  'Bash(ls:*)'
-  'Bash(mktemp:*)'
-  'Bash(chmod:*)'
-  'Bash(mkdir:*)'
-  'Bash(cp:*)'
-  'Bash(mv:*)'
-  'Bash(ln:*)'
-  'Bash(echo:*)'
-  'Bash(printf:*)'
+  "Bash(bash $HOME/.claude/scripts/*)"
+  "Bash(bash -n $HOME/.claude/scripts/*)"
+  'Bash(gh:*)'   'Bash(git:*)'    'Bash(jq:*)'     'Bash(column:*)'
+  'Bash(sort:*)' 'Bash(uniq:*)'   'Bash(wc:*)'     'Bash(awk:*)'
+  'Bash(sed:*)'  'Bash(find:*)'   'Bash(grep:*)'   'Bash(basename:*)'
+  'Bash(dirname:*)' 'Bash(date:*)' 'Bash(tr:*)'    'Bash(head:*)'
+  'Bash(tail:*)' 'Bash(cut:*)'    'Bash(cat:*)'    'Bash(ls:*)'
+  'Bash(mktemp:*)' 'Bash(chmod:*)' 'Bash(mkdir:*)' 'Bash(cp:*)'
+  'Bash(mv:*)'   'Bash(ln:*)'     'Bash(echo:*)'   'Bash(printf:*)'
 )
 
-# Agregar permisos que no existen
 tmp=$(mktemp)
-current_allow=$(jq -r '.permissions.allow // []' "$SETTINGS")
-
+current_allow=$(jq '.permissions.allow // []' "$SETTINGS")
 new_allow="$current_allow"
+added_perms=0
 for perm in "${SCRIPT_ALLOW[@]}"; do
-  # Reemplazar $USER con el usuario real en el permiso de scripts
-  perm="${perm/\$USER/$USER}"
-  if ! echo "$current_allow" | jq -e --arg p "$perm" '.[] | select(. == $p)' >/dev/null 2>&1; then
+  if ! echo "$current_allow" | jq -e --arg p "$perm" 'any(. == $p)' >/dev/null 2>&1; then
     new_allow=$(echo "$new_allow" | jq --arg p "$perm" '. + [$p]')
+    added_perms=$((added_perms+1))
+  fi
+done
+[[ $added_perms -gt 0 ]] && ok "$added_perms permisos nuevos agregados" || info "Todos los permisos ya estaban presentes"
+
+# ── 7b. Hooks: append-only por evento (nunca reemplaza hooks existentes) ──
+# Por cada evento, verificamos si ya hay un entry con nuestro comando.
+# Si no está, lo agregamos. Si ya está (reinstalación), lo saltamos.
+declare -A TOOLKIT_HOOKS=(
+  ["SessionStart"]='{"matcher":"startup","hooks":[{"type":"command","command":"bash ~/.claude/scripts/session-start-hook.sh"}]}'
+  ["UserPromptSubmit"]='{"hooks":[{"type":"command","command":"bash ~/.claude/scripts/prompt-trigger-hook.sh"}]}'
+  ["PostToolUse"]='{"matcher":"Edit|Write","hooks":[{"type":"command","command":"bash ~/.claude/scripts/post-tool-hook.sh"}]}'
+  ["Stop"]='{"hooks":[{"type":"command","command":"bash ~/.claude/scripts/stop-hook.sh"}]}'
+)
+
+current_settings=$(cat "$SETTINGS")
+for event in "${!TOOLKIT_HOOKS[@]}"; do
+  entry="${TOOLKIT_HOOKS[$event]}"
+  # Detectar si ya tenemos nuestro comando en este evento
+  our_cmd=$(echo "$entry" | jq -r '.. | .command? // empty' | head -1)
+  already_present=$(echo "$current_settings" | jq --arg evt "$event" --arg cmd "$our_cmd" \
+    '(.hooks[$evt] // []) | any(.. | .command? == $cmd)' 2>/dev/null || echo "false")
+
+  if [[ "$already_present" == "true" ]]; then
+    info "Hook $event ya configurado — sin cambios"
+  else
+    # Append nuestro entry al array existente del evento (o crear el array)
+    current_settings=$(echo "$current_settings" | jq \
+      --arg evt "$event" \
+      --argjson entry "$entry" \
+      '.hooks[$evt] = (.hooks[$evt] // []) + [$entry]')
+    ok "Hook $event agregado"
   fi
 done
 
-# Merge hooks
-HOOKS_JSON=$(cat << 'HOOKS'
-{
-  "SessionStart": [{"matcher": "startup", "hooks": [{"type": "command", "command": "bash ~/.claude/scripts/session-start-hook.sh"}]}],
-  "UserPromptSubmit": [{"hooks": [{"type": "command", "command": "bash ~/.claude/scripts/prompt-trigger-hook.sh"}]}],
-  "PostToolUse": [{"matcher": "Edit|Write", "hooks": [{"type": "command", "command": "bash ~/.claude/scripts/post-tool-hook.sh"}]}],
-  "Stop": [{"hooks": [{"type": "command", "command": "bash ~/.claude/scripts/stop-hook.sh"}]}]
-}
-HOOKS
-)
+# ── 7c. Escribir settings final ──
+echo "$current_settings" \
+  | jq --argjson allow "$new_allow" \
+       '.permissions.allow = $allow | .skipAutoPermissionPrompt = true' \
+  > "$tmp" && mv "$tmp" "$SETTINGS"
 
-# Fusionar con settings existentes preservando hooks del usuario
-jq --argjson allow "$new_allow" \
-   --argjson new_hooks "$HOOKS_JSON" \
-   '.permissions.allow = $allow |
-    .hooks = (.hooks // {}) * $new_hooks |
-    .skipAutoPermissionPrompt = true' \
-   "$SETTINGS" > "$tmp" && mv "$tmp" "$SETTINGS"
-
-ok "settings.json actualizado (hooks + $(echo "${SCRIPT_ALLOW[@]}" | wc -w) permisos)"
+jq . "$SETTINGS" > /dev/null && ok "settings.json actualizado y válido" || fail "settings.json resultó inválido — restaurá desde $BACKUP_DIR"
 
 # ────────────────────────────────────────────────
 # 8. VERIFICACIÓN FINAL
 # ────────────────────────────────────────────────
 step "Verificación final"
 
-checks_passed=0
-checks_total=0
-
+checks_passed=0; checks_total=0
 check() {
-  local desc="$1"; local cmd="$2"
+  local desc="$1" cmd="$2"
   checks_total=$((checks_total+1))
   if eval "$cmd" >/dev/null 2>&1; then
-    ok "$desc"
-    checks_passed=$((checks_passed+1))
+    ok "$desc"; checks_passed=$((checks_passed+1))
   else
     warn "$desc — FALLÓ"
   fi
 }
 
-check "RTK binario ejecutable"          "rtk --version"
-check "Scripts instalados"              "ls $CLAUDE_DIR/scripts/*.sh"
-check "Slash commands instalados"       "ls $CLAUDE_DIR/commands/*.md"
-check "CLAUDE.md existe"                "test -f $CLAUDE_DIR/CLAUDE.md"
-check "claude-toolkit.md existe"        "test -f $CLAUDE_DIR/claude-toolkit.md"
-check "settings.json válido"            "jq . $CLAUDE_DIR/settings.json"
-check "Hook SessionStart configurado"   "jq -e '.hooks.SessionStart' $CLAUDE_DIR/settings.json"
-check "Hook UserPromptSubmit config."   "jq -e '.hooks.UserPromptSubmit' $CLAUDE_DIR/settings.json"
-check "Hook PostToolUse configurado"    "jq -e '.hooks.PostToolUse' $CLAUDE_DIR/settings.json"
-check "Hook Stop configurado"           "jq -e '.hooks.Stop' $CLAUDE_DIR/settings.json"
+check "RTK binario ejecutable"         "rtk --version"
+check "Scripts instalados"             "ls $CLAUDE_DIR/scripts/*.sh"
+check "Slash commands instalados"      "ls $CLAUDE_DIR/commands/*.md"
+check "CLAUDE.md existe"               "test -f $CLAUDE_DIR/CLAUDE.md"
+check "claude-toolkit.md existe"       "test -f $CLAUDE_DIR/claude-toolkit.md"
+check "claude-issues.md existe"        "test -f $CLAUDE_DIR/claude-issues.md"
+check "settings.json válido"           "jq . $CLAUDE_DIR/settings.json"
+check "Hook SessionStart configurado"  "jq -e '.hooks.SessionStart' $CLAUDE_DIR/settings.json"
+check "Hook UserPromptSubmit config."  "jq -e '.hooks.UserPromptSubmit' $CLAUDE_DIR/settings.json"
+check "Hook PostToolUse configurado"   "jq -e '.hooks.PostToolUse' $CLAUDE_DIR/settings.json"
+check "Hook Stop configurado"          "jq -e '.hooks.Stop' $CLAUDE_DIR/settings.json"
 
 echo ""
 echo -e "${BOLD}Resultado: $checks_passed/$checks_total checks pasados${NC}"
@@ -269,18 +307,17 @@ echo "  1. Reabrí tu terminal (o ejecutá: source ~/.bashrc)"
 echo "  2. Abrí Claude Code en cualquier proyecto"
 echo "  3. Los hooks se activan automáticamente"
 echo ""
-echo "Comandos rápidos para verificar:"
-echo "  rtk --version                    # RTK funcionando"
-echo "  rtk gain                         # Stats de ahorro de tokens"
-echo "  ls ~/.claude/scripts/            # Scripts instalados"
-echo "  ls ~/.claude/commands/           # Slash commands disponibles"
+echo "Verificación rápida:"
+echo "  rtk --version            # RTK funcionando"
+echo "  rtk gain                 # stats de ahorro de tokens"
+echo "  ls ~/.claude/scripts/    # 24 scripts disponibles"
+echo "  ls ~/.claude/commands/   # 25 slash commands (/map, /backlog, etc.)"
 echo ""
-echo "Backup de tu config anterior en:"
-echo "  $BACKUP_DIR"
+echo "Backup de tu config anterior en: $BACKUP_DIR"
 echo ""
 
 if [[ $checks_passed -lt $checks_total ]]; then
-  warn "Algunos checks fallaron. Revisá los mensajes ⚠️  arriba."
+  warn "Algunos checks fallaron. Para restaurar: cp -r $BACKUP_DIR/* $CLAUDE_DIR/"
   exit 1
 fi
 
