@@ -15,7 +15,6 @@ set -euo pipefail
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
 CLAUDE_DIR="$HOME/.claude"
-CLAUDE_LOCAL_BIN="$HOME/.local/bin"
 BACKUP_DIR="$CLAUDE_DIR/backups/toolkit-install-$(date +%Y%m%d-%H%M%S)"
 
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; BLUE='\033[0;34m'; BOLD='\033[1m'; NC='\033[0m'
@@ -89,26 +88,25 @@ ok "Backup guardado en $BACKUP_DIR"
 # 3. RTK — Rust Token Killer
 # ────────────────────────────────────────────────
 step "Instalando RTK (Rust Token Killer)"
-mkdir -p "$CLAUDE_LOCAL_BIN"
-cp "$REPO_DIR/bin/rtk" "$CLAUDE_LOCAL_BIN/rtk"
-chmod +x "$CLAUDE_LOCAL_BIN/rtk"
-
-add_to_path() {
-  local rc_file="$1"
-  if [[ -f "$rc_file" ]] && ! grep -q '\.local/bin' "$rc_file" 2>/dev/null; then
-    { echo ""; echo "# Claude Code Toolkit — RTK"; echo 'export PATH="$HOME/.local/bin:$PATH"'; } >> "$rc_file"
-    info "PATH actualizado en $rc_file"
-  fi
-}
-add_to_path "$HOME/.bashrc"
-add_to_path "$HOME/.zshrc"
-export PATH="$HOME/.local/bin:$PATH"
 
 if rtk --version >/dev/null 2>&1; then
-  ok "RTK instalado: $(rtk --version)"
+  ok "RTK ya instalado: $(rtk --version)"
 else
-  warn "RTK instalado pero requiere nueva terminal. Corré: export PATH=\"\$HOME/.local/bin:\$PATH\""
+  if ! command -v curl >/dev/null 2>&1; then
+    fail "curl no encontrado — instalalo con: sudo apt install curl"
+  fi
+  curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | sh \
+    || fail "No se pudo instalar RTK. Intentá manualmente: curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | sh"
+  export PATH="$HOME/.local/bin:$PATH"
+  if rtk --version >/dev/null 2>&1; then
+    ok "RTK instalado: $(rtk --version)"
+  else
+    warn "RTK instalado pero requiere nueva terminal."
+  fi
 fi
+
+info "Inicializando RTK con configuración global..."
+rtk init --global || warn "rtk init --global falló — podés correrlo manualmente después"
 
 # ────────────────────────────────────────────────
 # 4. SCRIPTS (solo sobreescribe los del toolkit)
