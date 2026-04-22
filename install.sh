@@ -13,7 +13,7 @@
 #
 set -euo pipefail
 
-REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
 CLAUDE_DIR="$HOME/.claude"
 CLAUDE_LOCAL_BIN="$HOME/.local/bin"
 BACKUP_DIR="$CLAUDE_DIR/backups/toolkit-install-$(date +%Y%m%d-%H%M%S)"
@@ -228,32 +228,30 @@ done
 # ── 7b. Hooks: append-only por evento (nunca reemplaza hooks existentes) ──
 # Por cada evento, verificamos si ya hay un entry con nuestro comando.
 # Si no está, lo agregamos. Si ya está (reinstalación), lo saltamos.
-declare -A TOOLKIT_HOOKS=(
-  ["SessionStart"]='{"matcher":"startup","hooks":[{"type":"command","command":"bash ~/.claude/scripts/session-start-hook.sh"}]}'
-  ["UserPromptSubmit"]='{"hooks":[{"type":"command","command":"bash ~/.claude/scripts/prompt-trigger-hook.sh"}]}'
-  ["PostToolUse"]='{"matcher":"Edit|Write","hooks":[{"type":"command","command":"bash ~/.claude/scripts/post-tool-hook.sh"}]}'
-  ["Stop"]='{"hooks":[{"type":"command","command":"bash ~/.claude/scripts/stop-hook.sh"}]}'
-)
+# Nota: se evita declare -A para compatibilidad con bash y zsh.
 
-current_settings=$(cat "$SETTINGS")
-for event in "${!TOOLKIT_HOOKS[@]}"; do
-  entry="${TOOLKIT_HOOKS[$event]}"
-  # Detectar si ya tenemos nuestro comando en este evento
-  our_cmd=$(echo "$entry" | jq -r '.. | .command? // empty' | head -1)
-  already_present=$(echo "$current_settings" | jq --arg evt "$event" --arg cmd "$our_cmd" \
-    '(.hooks[$evt] // []) | any(.. | .command? == $cmd)' 2>/dev/null || echo "false")
-
+_append_hook() {
+  local event="$1" entry="$2"
+  local our_cmd already_present
+  our_cmd=$(printf '%s' "$entry" | jq -r '.. | .command? // empty' | head -1)
+  already_present=$(printf '%s' "$current_settings" | jq --arg evt "$event" --arg cmd "$our_cmd" \
+    '(.hooks[$evt] // []) | any(.. | .command? == $cmd)' 2>/dev/null || printf 'false')
   if [[ "$already_present" == "true" ]]; then
     info "Hook $event ya configurado — sin cambios"
   else
-    # Append nuestro entry al array existente del evento (o crear el array)
-    current_settings=$(echo "$current_settings" | jq \
+    current_settings=$(printf '%s' "$current_settings" | jq \
       --arg evt "$event" \
       --argjson entry "$entry" \
       '.hooks[$evt] = (.hooks[$evt] // []) + [$entry]')
     ok "Hook $event agregado"
   fi
-done
+}
+
+current_settings=$(cat "$SETTINGS")
+_append_hook "SessionStart"      '{"matcher":"startup","hooks":[{"type":"command","command":"bash ~/.claude/scripts/session-start-hook.sh"}]}'
+_append_hook "UserPromptSubmit"  '{"hooks":[{"type":"command","command":"bash ~/.claude/scripts/prompt-trigger-hook.sh"}]}'
+_append_hook "PostToolUse"       '{"matcher":"Edit|Write","hooks":[{"type":"command","command":"bash ~/.claude/scripts/post-tool-hook.sh"}]}'
+_append_hook "Stop"              '{"hooks":[{"type":"command","command":"bash ~/.claude/scripts/stop-hook.sh"}]}'
 
 # ── 7c. Escribir settings final ──
 echo "$current_settings" \
@@ -302,8 +300,11 @@ echo -e "${BOLD}╔════════════════════�
 echo -e "${BOLD}║  Instalación completa                                        ║${NC}"
 echo -e "${BOLD}╚══════════════════════════════════════════════════════════════╝${NC}"
 echo ""
+_shell_rc="$HOME/.bashrc"
+[[ "$(basename "${SHELL:-bash}")" == "zsh" ]] && _shell_rc="$HOME/.zshrc"
+
 echo "Próximos pasos:"
-echo "  1. Reabrí tu terminal (o ejecutá: source ~/.bashrc)"
+echo "  1. Reabrí tu terminal (o ejecutá: source $_shell_rc)"
 echo "  2. Abrí Claude Code en cualquier proyecto"
 echo "  3. Los hooks se activan automáticamente"
 echo ""
