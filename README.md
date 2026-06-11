@@ -1,10 +1,10 @@
 # Claude Code Toolkit
 
-**Scripts, slash commands, hooks y RTK preconfigurados para Claude Code. Una sola línea para instalar todo.**
+**Scripts, slash commands, hooks, handoff entre sesiones, CodeGraph MCP y RTK preconfigurados para Claude Code. Una sola línea para instalar todo.**
 
 ---
 
-## Instalación rápida (Ubuntu / WSL)
+## Instalación rápida (macOS / Ubuntu / WSL)
 
 ```bash
 git clone https://github.com/haefrain/claude-code-toolkit.git
@@ -12,11 +12,13 @@ cd claude-code-toolkit
 bash install.sh
 ```
 
-Eso es todo. El instalador configura automáticamente:
+Eso es todo. El instalador detecta el OS (Homebrew en macOS, apt en Ubuntu/WSL) y configura automáticamente:
 
 - ✅ RTK (Rust Token Killer) en `~/.local/bin/`
-- ✅ 24 scripts Bash en `~/.claude/scripts/`
-- ✅ 25 slash commands en `~/.claude/commands/`
+- ✅ CodeGraph como MCP server de Claude Code (inteligencia de código)
+- ✅ 26 scripts Bash en `~/.claude/scripts/`
+- ✅ 28 slash commands en `~/.claude/commands/`
+- ✅ Handoff automático entre sesiones (histórico en `.claude/handoff/` de cada repo, fuera de git)
 - ✅ CLAUDE.md con reglas prescriptivas
 - ✅ 5 hooks en `settings.json` (SessionStart, UserPromptSubmit, PostToolUse, Stop, PreToolUse)
 - ✅ 30+ permisos pre-aprobados para que no aparezcan prompts de confirmación
@@ -35,6 +37,26 @@ rtk discover      # analiza sesiones pasadas para encontrar oportunidades
 ```
 
 Se integra automáticamente via hook `PreToolUse` — cada comando Bash pasa por `rtk hook claude` antes de ejecutarse.
+
+### CodeGraph — Inteligencia de código
+Servidor MCP que indexa el grafo de símbolos del proyecto (callers, callees, impacto, trazas). Claude lo consulta automáticamente al cargar contexto y en preguntas tipo "¿qué llama a X?".
+
+```bash
+/codegraph-init            # Inicializar índice en el proyecto actual (desde Claude Code)
+codegraph status .         # Ver estado del índice
+codegraph query foo        # Buscar símbolo "foo"
+codegraph context "tarea"  # Contexto relevante para una tarea
+```
+
+### Handoff entre sesiones
+Al cerrar cada sesión, el Stop hook guarda un resumen (branch, commits, archivos modificados, issues trabajados) en `.claude/handoff/YYYYMMDD-HHMM.md` **dentro del repo** — excluido de git automáticamente via `.git/info/exclude`, sin tocar tu `.gitignore`. Al abrir la próxima sesión, SessionStart lo carga junto con las memorias del proyecto y el inventario de capacidades disponibles (skills, plugins, MCP servers). Funciona en **cualquier repo git**, no solo haefrain/*.
+
+```bash
+/handoff        # Generar handoff manual en cualquier momento
+/load-context   # Recargar el contexto enriquecido en la sesión actual
+```
+
+Se retienen los últimos 10 handoffs por repo (limpieza automática).
 
 ### Scripts Bash (`~/.claude/scripts/`)
 
@@ -62,6 +84,8 @@ Se integra automáticamente via hook `PreToolUse` — cada comando Bash pasa por
 | `search-docs.sh <término>` | Busca en `*.md`, `*.mdx` y JSDoc. |
 | `test-focus.sh [archivo]` | Tests del archivo modificado (jest/vitest/phpunit/pytest/flutter). |
 | `branch-cleanup.sh [base]` | Ramas mergeadas listas para borrar. |
+| `handoff-create.sh` | Genera `{repo}/.claude/handoff/YYYYMMDD-HHMM.md` al cerrar sesión (excluido de git). |
+| `load-context.sh` | Carga handoff anterior + memorias + codegraph + capacidades al iniciar. |
 
 ### Slash Commands (`~/.claude/commands/`)
 
@@ -72,15 +96,16 @@ Disponibles en Claude Code con `/nombre`:
 `/find-usages` `/search-docs` `/test-focus` `/ci-status` `/failing-tests`
 `/db-schema` `/pr-context` `/commit-ready` `/branch-cleanup` `/rate-limit-audit`
 `/auth-audit` `/pii-in-prisma` `/gdpr-check` `/explain-diff` `/undo-last`
+`/handoff` `/load-context` `/codegraph-init`
 
 ### Hooks automáticos
 
 | Hook | Cuándo actúa | Qué hace |
 |---|---|---|
-| `SessionStart` | Al abrir Claude Code en repo `haefrain/*` | Carga backlog automáticamente |
+| `SessionStart` | Al abrir Claude Code en cualquier repo | Carga handoff anterior + memorias + codegraph + capacidades; en repos `haefrain/*` también el backlog |
 | `UserPromptSubmit` | Cada mensaje del usuario | Detecta intención y sugiere el script correcto |
 | `PostToolUse` | Tras editar un archivo | Detecta tests relacionados y recuerda correrlos |
-| `Stop` | Al terminar el turno | Recuerda cerrar issues trabajados en la sesión |
+| `Stop` | Al terminar el turno | Genera handoff en `.claude/handoff/` del repo; en `haefrain/*` recuerda cerrar issues |
 | `PreToolUse` | Antes de cada comando Bash | RTK filtra el output para ahorrar tokens |
 
 ### Disparadores automáticos integrados en CLAUDE.md
@@ -97,6 +122,8 @@ Claude usa los scripts automáticamente cuando detecta estas intenciones:
 | "vulnerabilidades / CVE" | `dep-triage.sh` |
 | "schema prisma / modelos DB" | `db-schema.sh` |
 | "gdpr / compliance / check completo" | `gdpr-quick-check.sh` |
+| "retomemos / dónde quedamos" | `load-context.sh` (handoff + memorias + capacidades) |
+| "¿qué llama a X? / impacto de cambiar X" | tools MCP de codegraph |
 
 ---
 
@@ -109,11 +136,13 @@ claude-code-toolkit/
 │   └── rtk                    # Binario RTK (x86-64 Linux)
 ├── scripts/                   # Se instalan en ~/.claude/scripts/
 │   ├── gh-backlog.sh
-│   ├── project-map.sh
-│   └── ... (24 scripts)
+│   ├── handoff-create.sh
+│   ├── load-context.sh
+│   └── ... (26 scripts)
 ├── commands/                  # Se instalan en ~/.claude/commands/
 │   ├── session-start.md
-│   └── ... (25 comandos)
+│   ├── handoff.md
+│   └── ... (28 comandos)
 └── config/                    # Se instalan en ~/.claude/
     ├── CLAUDE.md
     ├── claude-issues.md
@@ -125,10 +154,11 @@ claude-code-toolkit/
 
 ## Requisitos
 
-- Ubuntu 20.04+ / WSL2
+- macOS (con [Homebrew](https://brew.sh)) o Ubuntu 20.04+ / WSL2
 - Claude Code CLI instalado
 - `git`, `jq` (el instalador los instala si faltan)
 - `gh` (GitHub CLI) — opcional, para funciones de issues/PRs
+- `node` / `npm` — para CodeGraph (el instalador lo instala via npm si está disponible)
 
 ---
 

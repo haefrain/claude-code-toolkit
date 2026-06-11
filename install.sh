@@ -297,9 +297,10 @@ if command -v codegraph >/dev/null 2>&1; then
 else
   if command -v npm >/dev/null 2>&1; then
     info "Instalando codegraph via npm..."
-    npm install -g @colbymchenry/codegraph >/dev/null 2>&1 \
+    # Versión pineada (auditada) — actualizar deliberadamente, no a ciegas
+    npm install -g @colbymchenry/codegraph@0.9.7 >/dev/null 2>&1 \
       && ok "codegraph instalado: $(codegraph --version 2>/dev/null || echo 'ok')" \
-      || warn "npm install de codegraph falló — instalalo manualmente: npm install -g @colbymchenry/codegraph"
+      || warn "npm install de codegraph falló — instalalo manualmente: npm install -g @colbymchenry/codegraph@0.9.7"
   else
     warn "npm no encontrado — instalá Node.js y luego: npm install -g @colbymchenry/codegraph"
   fi

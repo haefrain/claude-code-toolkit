@@ -20,6 +20,10 @@
 | crear issue | checklist calidad + delegar a `issue-manager` |
 | cerrar issue | verificar todos los criterios ✅ primero |
 | bootstrap labels | `gh-bootstrap-labels.sh owner/repo` |
+| retomemos / continúa / dónde quedamos | `load-context.sh` (automático via SessionStart; manual: `/load-context`) |
+| genera handoff / guardar estado / cerrar sesión | `/handoff` (también automático via Stop hook) |
+| inicializar codegraph / indexar proyecto | `/codegraph-init` |
+| cómo funciona X / qué llama a X / impacto de cambiar X | tools MCP codegraph (`codegraph_context`, `codegraph_trace`, `codegraph_impact`) si hay índice — ANTES de grep manual |
 
 ❌ Anti-patrón: `gh issue list` crudo / leer archivos uno por uno / explicarle al usuario que use el comando.
 
@@ -55,8 +59,13 @@
 - `test-focus.sh [archivo] [path]` — solo tests del archivo modificado
 - `dep-triage.sh [path]` — CVEs clasificados (npm/pnpm/composer/pip)
 
+**Handoff & Contexto**
+- `handoff-create.sh` — genera `{repo}/.claude/handoff/YYYYMMDD-HHMM.md` al cerrar sesión (cualquier repo git; excluido de git via `.git/info/exclude`). Retiene los 10 más recientes.
+- `load-context.sh` — al iniciar sesión carga: handoff anterior + memorias del proyecto + estado codegraph + inventario de capacidades (commands/skills/agents/MCP del repo y globales). Silencioso si no hay nada.
+
 **Hooks internos** (no llamar manualmente)
-- `session-start-hook.sh` — SessionStart, carga backlog si repo haefrain/*
+- `session-start-hook.sh` — SessionStart, corre load-context.sh en cualquier repo + backlog si repo haefrain/*
+- `stop-hook.sh` — Stop, corre handoff-create.sh en cualquier repo + recordatorio de issues si haefrain/*
 - `prompt-trigger-hook.sh` — UserPromptSubmit, inyecta recordatorio según keywords
 - `post-tool-hook.sh` — PostToolUse, recuerda correr tests tras editar código
 
@@ -67,3 +76,14 @@
 `/find-usages` `/search-docs` `/test-focus` `/ci-status` `/failing-tests`
 `/db-schema` `/pr-context` `/commit-ready` `/branch-cleanup` `/rate-limit-audit`
 `/auth-audit` `/pii-in-prisma` `/gdpr-check` `/explain-diff` `/undo-last`
+`/handoff` `/load-context` `/codegraph-init`
+
+## Máximo aprovechamiento de capacidades
+
+Al inicio de cada sesión, `load-context.sh` inyecta el inventario de capacidades disponibles
+(slash commands, skills, agents y MCP servers del repo + plugins globales + codegraph).
+**Regla:** usá siempre la herramienta más específica disponible:
+- script del toolkit > comando crudo
+- tools MCP de codegraph > grep/read manual (si hay índice; si no, sugerí `/codegraph-init`)
+- skill o plugin instalado > improvisación
+- handoff de la sesión anterior > re-explorar el repo desde cero

@@ -37,9 +37,9 @@ SIEMPRE responde en español. Código fuente, variables y commits pueden estar e
 
 ## Flujo de sesión
 
-1. **Inicio:** `gh-backlog.sh` (o esperar que el hook SessionStart lo haga automático en repos haefrain/*).
-2. **Durante:** si aparece trabajo nuevo → issue antes de empezar.
-3. **Al terminar:** cerrar issues completados + comentario con commit/PR.
+1. **Inicio:** el hook SessionStart carga automáticamente: handoff de la sesión anterior + memorias + codegraph + inventario de capacidades (cualquier repo) y el backlog (repos haefrain/*). Manual: `/load-context` y `/session-start`.
+2. **Durante:** si aparece trabajo nuevo → issue antes de empezar. Usá las capacidades inyectadas al inicio (scripts, skills, tools MCP de codegraph) en vez de improvisar.
+3. **Al terminar:** cerrar issues completados + comentario con commit/PR. El hook Stop genera el handoff automáticamente; si la sesión tuvo decisiones importantes, enriquecelo con `/handoff`.
 4. **Si bloqueas:** comentar en el issue + label `blocked:external` o `needs-decision`.
 
 @RTK.md
