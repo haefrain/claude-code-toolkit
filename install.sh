@@ -278,6 +278,9 @@ _append_hook "SessionStart"      '{"matcher":"startup","hooks":[{"type":"command
 _append_hook "UserPromptSubmit"  '{"hooks":[{"type":"command","command":"bash ~/.claude/scripts/prompt-trigger-hook.sh"}]}'
 _append_hook "PostToolUse"       '{"matcher":"Edit|Write","hooks":[{"type":"command","command":"bash ~/.claude/scripts/post-tool-hook.sh"}]}'
 _append_hook "Stop"              '{"hooks":[{"type":"command","command":"bash ~/.claude/scripts/stop-hook.sh"}]}'
+# RTK PreToolUse: rtk init --global lo deja como "manual step" en modo no-interactivo — lo registramos acá
+command -v rtk >/dev/null 2>&1 && \
+_append_hook "PreToolUse"        '{"matcher":"Bash","hooks":[{"type":"command","command":"rtk hook claude"}]}'
 
 # ── 7c. Escribir settings final ──
 echo "$current_settings" \
@@ -308,9 +311,10 @@ fi
 
 if command -v codegraph >/dev/null 2>&1; then
   info "Registrando codegraph como MCP server en Claude Code..."
-  codegraph install --target=claude-code --location=global -y 2>/dev/null \
+  # El target id de Claude Code en codegraph es "claude" (no "claude-code")
+  codegraph install --target=claude --location=global -y \
     && ok "CodeGraph MCP configurado en Claude Code" \
-    || warn "codegraph install falló — corré manualmente: codegraph install --target=claude-code -y"
+    || warn "codegraph install falló — corré manualmente: codegraph install --target=claude --location=global -y"
 fi
 
 # ────────────────────────────────────────────────
@@ -340,7 +344,9 @@ check "Hook SessionStart configurado"  "jq -e '.hooks.SessionStart' $CLAUDE_DIR/
 check "Hook UserPromptSubmit config."  "jq -e '.hooks.UserPromptSubmit' $CLAUDE_DIR/settings.json"
 check "Hook PostToolUse configurado"   "jq -e '.hooks.PostToolUse' $CLAUDE_DIR/settings.json"
 check "Hook Stop configurado"          "jq -e '.hooks.Stop' $CLAUDE_DIR/settings.json"
+check "Hook PreToolUse (RTK) config."  "jq -e '.hooks.PreToolUse' $CLAUDE_DIR/settings.json"
 check "CodeGraph instalado"            "codegraph --version"
+check "CodeGraph MCP registrado"       "jq -e '.mcpServers.codegraph' $HOME/.claude.json"
 check "Script handoff-create presente" "test -x $CLAUDE_DIR/scripts/handoff-create.sh"
 check "Script load-context presente"   "test -x $CLAUDE_DIR/scripts/load-context.sh"
 
