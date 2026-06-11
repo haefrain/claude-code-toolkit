@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ╔══════════════════════════════════════════════════════════════════╗
-# ║           Claude Code Toolkit — Instalador Ubuntu               ║
+# ║      Claude Code Toolkit — Instalador macOS / Ubuntu / WSL2     ║
 # ║  Ejecutar: bash install.sh                                       ║
 # ╚══════════════════════════════════════════════════════════════════╝
 #
@@ -24,6 +24,25 @@ info() { echo -e "${BLUE}ℹ️  $*${NC}"; }
 fail() { echo -e "${RED}❌ $*${NC}"; exit 1; }
 step() { echo -e "\n${BOLD}▶ $*${NC}"; }
 
+# ── Detección de OS ──────────────────────────────────────────────
+OS_TYPE="linux"
+[[ "$(uname -s)" == "Darwin" ]] && OS_TYPE="macos"
+
+pkg_install() {
+  local pkg="$1"
+  if [[ "$OS_TYPE" == "macos" ]]; then
+    if command -v brew >/dev/null 2>&1; then
+      brew install "$pkg" >/dev/null 2>&1 && ok "$pkg instalado (brew)" \
+        || warn "brew install $pkg falló — instalalo manualmente: brew install $pkg"
+    else
+      fail "Homebrew no encontrado. Instalalo en https://brew.sh y volvé a ejecutar install.sh"
+    fi
+  else
+    sudo apt-get install -y "$pkg" >/dev/null 2>&1 && ok "$pkg instalado" \
+      || fail "No se pudo instalar $pkg. Corré: sudo apt install $pkg"
+  fi
+}
+
 echo -e "${BOLD}"
 echo "╔══════════════════════════════════════════════════════════════╗"
 echo "║           Claude Code Toolkit — Instalador                  ║"
@@ -42,11 +61,15 @@ check_cmd() {
   else
     warn "$1 no encontrado — instalando..."
     case "$1" in
-      jq)   sudo apt-get install -y jq   >/dev/null 2>&1 && ok "jq instalado"   || fail "No se pudo instalar jq. Corré: sudo apt install jq" ;;
-      git)  sudo apt-get install -y git  >/dev/null 2>&1 && ok "git instalado"  || fail "No se pudo instalar git" ;;
-      tree) sudo apt-get install -y tree >/dev/null 2>&1 && ok "tree instalado" || warn "tree no instalado (opcional)" ;;
+      jq|git|tree)
+        pkg_install "$1" || true
+        ;;
       gh)
-        info "Instalando GitHub CLI (gh)..."
+        if [[ "$OS_TYPE" == "macos" ]]; then
+          pkg_install "gh" || warn "gh no instalado — funcionalidad de issues/PRs limitada"
+          return 0
+        fi
+        info "Instalando GitHub CLI (gh) via apt..."
         (type -p curl >/dev/null || sudo apt install curl -y) \
         && curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg \
            | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
@@ -95,8 +118,13 @@ else
   if ! command -v curl >/dev/null 2>&1; then
     fail "curl no encontrado — instalalo con: sudo apt install curl"
   fi
-  curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | sh \
-    || fail "No se pudo instalar RTK. Intentá manualmente: curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | sh"
+  if ! curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | sh; then
+    if [[ "$OS_TYPE" == "macos" ]]; then
+      warn "RTK no se pudo instalar en macOS — el resto del toolkit funciona sin RTK"
+    else
+      fail "No se pudo instalar RTK. Intentá manualmente: curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | sh"
+    fi
+  fi
   export PATH="$HOME/.local/bin:$PATH"
   if rtk --version >/dev/null 2>&1; then
     ok "RTK instalado: $(rtk --version)"
@@ -260,7 +288,32 @@ echo "$current_settings" \
 jq . "$SETTINGS" > /dev/null && ok "settings.json actualizado y válido" || fail "settings.json resultó inválido — restaurá desde $BACKUP_DIR"
 
 # ────────────────────────────────────────────────
-# 8. VERIFICACIÓN FINAL
+# 8. CODEGRAPH MCP SERVER
+# ────────────────────────────────────────────────
+step "Configurando CodeGraph MCP"
+
+if command -v codegraph >/dev/null 2>&1; then
+  ok "codegraph ya instalado: $(codegraph --version)"
+else
+  if command -v npm >/dev/null 2>&1; then
+    info "Instalando codegraph via npm..."
+    npm install -g @colbymchenry/codegraph >/dev/null 2>&1 \
+      && ok "codegraph instalado: $(codegraph --version 2>/dev/null || echo 'ok')" \
+      || warn "npm install de codegraph falló — instalalo manualmente: npm install -g @colbymchenry/codegraph"
+  else
+    warn "npm no encontrado — instalá Node.js y luego: npm install -g @colbymchenry/codegraph"
+  fi
+fi
+
+if command -v codegraph >/dev/null 2>&1; then
+  info "Registrando codegraph como MCP server en Claude Code..."
+  codegraph install --target=claude-code --location=global -y 2>/dev/null \
+    && ok "CodeGraph MCP configurado en Claude Code" \
+    || warn "codegraph install falló — corré manualmente: codegraph install --target=claude-code -y"
+fi
+
+# ────────────────────────────────────────────────
+# 9. VERIFICACIÓN FINAL
 # ────────────────────────────────────────────────
 step "Verificación final"
 
@@ -286,6 +339,9 @@ check "Hook SessionStart configurado"  "jq -e '.hooks.SessionStart' $CLAUDE_DIR/
 check "Hook UserPromptSubmit config."  "jq -e '.hooks.UserPromptSubmit' $CLAUDE_DIR/settings.json"
 check "Hook PostToolUse configurado"   "jq -e '.hooks.PostToolUse' $CLAUDE_DIR/settings.json"
 check "Hook Stop configurado"          "jq -e '.hooks.Stop' $CLAUDE_DIR/settings.json"
+check "CodeGraph instalado"            "codegraph --version"
+check "Script handoff-create presente" "test -x $CLAUDE_DIR/scripts/handoff-create.sh"
+check "Script load-context presente"   "test -x $CLAUDE_DIR/scripts/load-context.sh"
 
 echo ""
 echo -e "${BOLD}Resultado: $checks_passed/$checks_total checks pasados${NC}"
@@ -309,8 +365,9 @@ echo ""
 echo "Verificación rápida:"
 echo "  rtk --version            # RTK funcionando"
 echo "  rtk gain                 # stats de ahorro de tokens"
-echo "  ls ~/.claude/scripts/    # 24 scripts disponibles"
-echo "  ls ~/.claude/commands/   # 25 slash commands (/map, /backlog, etc.)"
+echo "  ls ~/.claude/scripts/    # 26 scripts disponibles"
+echo "  ls ~/.claude/commands/   # 28 slash commands (/map, /backlog, /handoff, etc.)"
+echo "  codegraph --version      # CodeGraph MCP funcionando"
 echo ""
 echo "Backup de tu config anterior en: $BACKUP_DIR"
 echo ""
