@@ -58,6 +58,38 @@ Al cerrar cada sesión, el Stop hook guarda un resumen (branch, commits, archivo
 
 Se retienen los últimos 10 handoffs por repo (limpieza automática).
 
+**El ciclo completo de continuidad:**
+
+```
+┌─ Sesión 1 ──────────────────────────────────────────────┐
+│  Trabajás normal. Al cerrar, el Stop hook guarda:       │
+│  .claude/handoff/20260611-1830.md                       │
+│  (branch, commits de la sesión, archivos, issues)       │
+└─────────────────────────────────────────────────────────┘
+                          ↓
+┌─ Sesión 2 (misma u otra ventana) ───────────────────────┐
+│  SessionStart inyecta automáticamente:                  │
+│  ## Continuación de sesión anterior   ← el handoff      │
+│  ## Memorias del proyecto             ← ~/.claude/      │
+│  ## CodeGraph: índice disponible      ← si lo hay       │
+│  ## Capacidades disponibles           ← ver abajo       │
+│  Claude retoma sin re-explorar el repo desde cero.      │
+└─────────────────────────────────────────────────────────┘
+```
+
+### Inventario de capacidades
+Al inicio de cada sesión, `load-context.sh` le informa a Claude todo el arsenal disponible para que lo aproveche al máximo:
+
+- **Slash commands del repo** (`.claude/commands/` del proyecto)
+- **Skills del repo** (`.claude/skills/`)
+- **Agents del repo** (`.claude/agents/`)
+- **MCP servers del repo** (`.mcp.json`)
+- **Plugins globales** instalados en Claude Code
+- **Toolkit global** (scripts + commands de `~/.claude/`)
+- **Estado de CodeGraph** — y si no hay índice, le recuerda sugerir `/codegraph-init`
+
+Junto con el inventario se inyecta la regla de oro: *usá siempre la herramienta más específica disponible* (script del toolkit > comando crudo; codegraph > grep manual; skill > improvisación; handoff > re-explorar desde cero).
+
 ### Scripts Bash (`~/.claude/scripts/`)
 
 | Script | Función |
@@ -132,8 +164,6 @@ Claude usa los scripts automáticamente cuando detecta estas intenciones:
 ```
 claude-code-toolkit/
 ├── install.sh                 # Instalador principal — ejecutar esto
-├── bin/
-│   └── rtk                    # Binario RTK (x86-64 Linux)
 ├── scripts/                   # Se instalan en ~/.claude/scripts/
 │   ├── gh-backlog.sh
 │   ├── handoff-create.sh
@@ -143,11 +173,13 @@ claude-code-toolkit/
 │   ├── session-start.md
 │   ├── handoff.md
 │   └── ... (28 comandos)
-└── config/                    # Se instalan en ~/.claude/
-    ├── CLAUDE.md
-    ├── claude-issues.md
-    ├── claude-toolkit.md
-    └── RTK.md
+├── config/                    # Se instalan en ~/.claude/
+│   ├── CLAUDE.md
+│   ├── claude-issues.md
+│   ├── claude-toolkit.md
+│   └── RTK.md
+└── docs/                      # Planes y especificaciones de diseño
+    └── superpowers/plans/
 ```
 
 ---
@@ -183,7 +215,11 @@ cp ~/.claude/backups/toolkit-install-FECHA/settings.json ~/.claude/settings.json
 cp ~/.claude/backups/toolkit-install-FECHA/CLAUDE.md ~/.claude/CLAUDE.md
 rm -rf ~/.claude/scripts ~/.claude/commands
 rm ~/.local/bin/rtk
+codegraph uninstall --target=claude-code   # quitar el MCP server de Claude Code
+npm uninstall -g @colbymchenry/codegraph   # desinstalar codegraph
 ```
+
+Los handoffs viven dentro de cada repo; para limpiarlos en un proyecto: `rm -rf .claude/handoff/` (git nunca los trackeó, no afecta nada).
 
 ---
 
