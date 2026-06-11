@@ -1,9 +1,14 @@
 #!/usr/bin/env bash
 # session-start-hook.sh — se ejecuta vía hook SessionStart de Claude Code.
-# Solo actúa si el cwd es un repo github.com/haefrain/*.
-# Output va al contexto de Claude.
+# 1. Carga contexto enriquecido (handoff anterior + memorias + codegraph + capacidades)
+#    en CUALQUIER repo via load-context.sh.
+# 2. Solo en repos haefrain/*: carga el backlog automáticamente.
 set -euo pipefail
 
+# ── 1. Contexto enriquecido (todos los proyectos) ─────────────
+"$(dirname "$0")/load-context.sh" 2>/dev/null || true
+
+# ── 2. Backlog automático (solo repos haefrain/*) ─────────────
 remote=$(git -C "${CLAUDE_PROJECT_DIR:-$PWD}" remote get-url origin 2>/dev/null || true)
 
 if [[ ! "$remote" =~ github\.com[:/]haefrain/ ]]; then

@@ -1,13 +1,17 @@
 #!/usr/bin/env bash
-# stop-hook.sh — Stop hook. Recuerda cerrar issues si hay criterios marcados en la sesión.
+# stop-hook.sh — Stop hook.
+# 1. SIEMPRE: genera handoff de sesión (cualquier repo git) via handoff-create.sh.
+# 2. Solo repos haefrain/*: recuerda cerrar issues mencionados en la sesión.
 # Input stdin JSON: { "stop_hook_active": true, "transcript_path": "..." }
-# Claude Code pasa el transcript; lo parseamos para detectar issues mencionados.
 set -euo pipefail
 
 input=$(cat)
 transcript=$(echo "$input" | jq -r '.transcript_path // ""' 2>/dev/null || echo "")
 
-# Detectar si estamos en repo haefrain/*
+# ── 1. Handoff de sesión (cualquier repo git) ─────────────────
+echo "$input" | "$(dirname "$0")/handoff-create.sh" 2>/dev/null || true
+
+# ── 2. Recordatorio de issues (solo haefrain/*) ───────────────
 cwd="${CLAUDE_PROJECT_DIR:-$PWD}"
 remote=$(git -C "$cwd" remote get-url origin 2>/dev/null || true)
 [[ "$remote" =~ github\.com[:/]haefrain/ ]] || exit 0
