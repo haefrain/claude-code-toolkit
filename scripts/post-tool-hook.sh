@@ -13,6 +13,20 @@ tool=$(echo "$input" | jq -r '.tool_name // ""' 2>/dev/null || echo "")
 file=$(echo "$input" | jq -r '.tool_input.file_path // ""' 2>/dev/null || echo "")
 [[ -z "$file" ]] && exit 0
 
+# ── Marcador de verificación (Sección 01) ─────────────────────
+# Si se editó código, registrarlo para que verify-stop.sh verifique al Stop.
+sid=$(echo "$input" | jq -r '.session_id // ""' 2>/dev/null || echo "")
+ext="${file##*.}"
+case "$ext" in
+  ts|tsx|js|jsx|mjs|cjs|vue|svelte|py|rb|php|go|rs|java|kt|swift|c|cpp|h|cs|sql|prisma|sh)
+    if [[ -n "$sid" ]]; then
+      tmp="${TMPDIR:-/tmp}"; tmp="${tmp%/}"
+      marker="$tmp/claude-verify-pending-$sid"
+      grep -qxF "$file" "$marker" 2>/dev/null || echo "$file" >> "$marker"
+    fi
+    ;;
+esac
+
 # Detectar si existe archivo de test relacionado
 base=$(basename "$file" | sed 's/\.[^.]*$//')
 dir=$(dirname "$file")
