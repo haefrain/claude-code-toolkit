@@ -28,6 +28,7 @@ root=$(git -C "$cwd" rev-parse --show-toplevel 2>/dev/null) || { rm -f "$marker"
 
 # 3. Anti-loop: al agotar los reintentos se permite parar con advertencia
 attempts=$(cat "$attempts_f" 2>/dev/null || echo 0)
+[[ "$attempts" =~ ^[0-9]+$ ]] || attempts=0
 if [[ "$attempts" -ge "$MAX_ATTEMPTS" ]]; then
   rm -f "$marker" "$attempts_f"
   jq -cn --arg m "⚠️ verify-stop: la verificación falló $MAX_ATTEMPTS veces — se permite parar. Verificá manualmente antes de entregar." \

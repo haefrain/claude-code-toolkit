@@ -52,4 +52,15 @@ echo "$out" | jq -e '.decision == "block"' >/dev/null || fail "fallback lint rot
 echo "$out" | grep -q "verify-setup" || fail "reason del fallback debe incluir nudge /verify-setup"
 rm -f "$TMPDIR/claude-verify-pending-v1" "$TMPDIR/claude-verify-attempts-v1"
 
+# 8. attempts_f corrupto (no numérico) → se trata como 0: no crashea, no ensucia stderr
+rm -f "$repo/package.json"; rm -rf "$repo/.claude"
+mkdir -p "$repo/.claude"
+printf '#!/bin/bash\nexit 0\n' > "$repo/.claude/verify.sh"
+echo "not-a-number" > "$TMPDIR/claude-verify-attempts-v1"
+touch "$TMPDIR/claude-verify-pending-v1"
+err=$(echo '{"session_id":"v1","stop_hook_active":false}' \
+  | (cd "$repo" && CLAUDE_PROJECT_DIR="$repo" bash "$SCRIPTS/verify-stop.sh" 2>&1 >/dev/null)) || true
+[[ -z "$err" ]] || fail "attempts corrupto no debe emitir stderr: $err"
+[[ ! -f "$TMPDIR/claude-verify-pending-v1" ]] || fail "attempts corrupto: pase debe limpiar marcador"
+
 echo "OK: verify-stop"
