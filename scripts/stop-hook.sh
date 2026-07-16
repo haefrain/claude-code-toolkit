@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # stop-hook.sh — Stop hook.
+# 0. SIEMPRE: verificación de código editado via verify-stop.sh (puede bloquear el stop).
 # 1. SIEMPRE: genera handoff de sesión (cualquier repo git) via handoff-create.sh.
 # 2. Solo repos haefrain/*: recuerda cerrar issues mencionados en la sesión.
 # Input stdin JSON: { "stop_hook_active": true, "transcript_path": "..." }
@@ -7,6 +8,22 @@ set -euo pipefail
 
 input=$(cat)
 transcript=$(echo "$input" | jq -r '.transcript_path // ""' 2>/dev/null || echo "")
+
+# ── 0. Verificación (Sección 01) — puede bloquear el stop ─────
+verify_out=$(echo "$input" | bash "$(dirname "$0")/verify-stop.sh" 2>/dev/null || true)
+if [[ -n "$verify_out" ]]; then
+  decision=$(echo "$verify_out" | jq -r '.decision // ""' 2>/dev/null || echo "")
+  if [[ "$decision" == "block" ]]; then
+    # Bloquea: reenviar como ÚNICO stdout y salir. La sesión continúa;
+    # el handoff llegará en el stop definitivo.
+    echo "$verify_out"
+    exit 0
+  fi
+  # systemMessage (anti-loop agotado): handoff en silencio + advertencia visible
+  echo "$input" | "$(dirname "$0")/handoff-create.sh" >/dev/null 2>&1 || true
+  echo "$verify_out"
+  exit 0
+fi
 
 # ── 1. Handoff de sesión (cualquier repo git) ─────────────────
 echo "$input" | "$(dirname "$0")/handoff-create.sh" 2>/dev/null || true
