@@ -22,7 +22,7 @@ case "$ext" in
     if [[ -n "$sid" ]]; then
       tmp="${TMPDIR:-/tmp}"; tmp="${tmp%/}"
       marker="$tmp/claude-verify-pending-$sid"
-      grep -qxF "$file" "$marker" 2>/dev/null || echo "$file" >> "$marker"
+      { grep -qxF -- "$file" "$marker" 2>/dev/null || echo "$file" >> "$marker"; } 2>/dev/null || true
     fi
     ;;
 esac

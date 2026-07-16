@@ -3,6 +3,7 @@
 set -uo pipefail
 SCRIPTS="$(cd "$(dirname "$0")/../scripts" && pwd)"
 TMPDIR="$(mktemp -d)"; export TMPDIR
+trap 'rm -rf "$TMPDIR"' EXIT
 fail() { echo "FAIL(post-tool-marker): $1"; exit 1; }
 
 # 1. Edit de .ts crea marcador con la ruta
@@ -24,5 +25,11 @@ echo '{"session_id":"t1","tool_name":"Write","tool_input":{"file_path":"/x/a.ts"
 echo '{"session_id":"t3","tool_name":"Read","tool_input":{"file_path":"/x/b.ts"}}' \
   | bash "$SCRIPTS/post-tool-hook.sh" >/dev/null 2>&1
 [[ ! -f "$TMPDIR/claude-verify-pending-t3" ]] || fail "Read no debe marcar"
+
+# 5. TMPDIR roto → el hook NO revienta (exit 0, sin ruido)
+rc=0
+out=$(TMPDIR="/nonexistent-dir-xyz" bash "$SCRIPTS/post-tool-hook.sh" 2>&1 \
+  <<< '{"session_id":"t9","tool_name":"Edit","tool_input":{"file_path":"/x/a.ts"}}') || rc=$?
+[[ "$rc" -eq 0 ]] || fail "TMPDIR roto no debe romper el hook (exit $rc)"
 
 echo "OK: post-tool-marker"
