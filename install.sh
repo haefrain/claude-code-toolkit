@@ -297,7 +297,7 @@ _append_hook "Stop"              '{"hooks":[{"type":"command","command":"bash ~/
 # La verificación puede correr lint/tests: subir el timeout del Stop hook a 600s (idempotente)
 current_settings=$(printf '%s' "$current_settings" | jq \
   '(.hooks.Stop // []) |= map(
-     .hooks |= map(if .command == "bash ~/.claude/scripts/stop-hook.sh" then . + {timeout: 600} else . end)
+     if has("hooks") then .hooks |= map(if .command == "bash ~/.claude/scripts/stop-hook.sh" then . + {timeout: 600} else . end) else . end
    )')
 # RTK PreToolUse: rtk init --global lo deja como "manual step" en modo no-interactivo — lo registramos acá
 command -v rtk >/dev/null 2>&1 && \

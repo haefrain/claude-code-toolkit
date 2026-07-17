@@ -78,7 +78,7 @@ if [[ "$rc" -eq 0 ]]; then
 fi
 
 echo $((attempts + 1)) > "$attempts_f"
-tail_out=$(printf '%s' "$out" | tail -50)
+tail_out=$(printf '%s' "$out" | tail -50 | tail -c 8000)
 reason="❌ Verificación falló (${ran}).${nudge} Arreglá los errores; al volver a entregar, la verificación correrá de nuevo.
 
 ${tail_out}"

@@ -158,6 +158,8 @@ En repos propios (`haefrain/*`) se comitea; en ajenos queda local vía `.git/inf
 de afirmaciones, `/simplify` como cierre estándar, y la regla de compounding: cada corrección
 termina actualizando el CLAUDE.md del repo.
 
+> ⚠️ **Frontera de confianza:** el contrato y el fallback son código del repo y corren automáticamente al Stop. En repos no confiables, revisá `.claude/verify.sh` y los scripts de `package.json` antes de trabajar. El timeout de 600s del hook solo queda activo tras re-correr `install.sh`.
+
 ### Disparadores automáticos integrados en CLAUDE.md
 
 Claude usa los scripts automáticamente cuando detecta estas intenciones:
