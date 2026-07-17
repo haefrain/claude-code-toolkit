@@ -96,6 +96,22 @@ if [ -n "$cost_val" ]; then
   cost_display="$(printf '$%.2f' "$cost_val" 2>/dev/null)"
 fi
 
+# --- Rate limits de suscripción (ventanas 5h / 7d) ---
+# Solo presentes para suscriptores de Claude.ai tras la primera respuesta de API.
+rl5h_display=""
+rl5h_val="$(jget '.rate_limits.five_hour.used_percentage // empty')"
+if [ -n "$rl5h_val" ]; then
+  rl5h_int="$(printf '%.0f' "$rl5h_val" 2>/dev/null)"
+  [ -n "$rl5h_int" ] && rl5h_display="5h ${rl5h_int}%"
+fi
+
+rl7d_display=""
+rl7d_val="$(jget '.rate_limits.seven_day.used_percentage // empty')"
+if [ -n "$rl7d_val" ]; then
+  rl7d_int="$(printf '%.0f' "$rl7d_val" 2>/dev/null)"
+  [ -n "$rl7d_int" ] && rl7d_display="7d ${rl7d_int}%"
+fi
+
 # --- Ensamblar línea final ---
 segment_dir="$dir_name"
 [ -n "$branch" ] && segment_dir="$segment_dir ($branch)"
@@ -103,6 +119,8 @@ segment_dir="$dir_name"
 line="⏵ $model_name · $segment_dir"
 [ -n "$ctx_display" ] && line="$line · ctx ${ctx_display}%"
 [ -n "$cost_display" ] && line="$line · $cost_display"
+[ -n "$rl5h_display" ] && line="$line · $rl5h_display"
+[ -n "$rl7d_display" ] && line="$line · $rl7d_display"
 
 printf '%s\n' "$line"
 exit 0

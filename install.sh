@@ -366,6 +366,40 @@ if command -v codegraph >/dev/null 2>&1; then
 fi
 
 # ────────────────────────────────────────────────
+# 8b. SDD CLI — uv + specify (GitHub Spec Kit)
+# ────────────────────────────────────────────────
+step "Configurando SDD CLI (uv + specify)"
+
+if command -v uv >/dev/null 2>&1; then
+  ok "uv ya instalado: $(uv --version 2>/dev/null | head -1)"
+else
+  if command -v brew >/dev/null 2>&1; then
+    info "Instalando uv via Homebrew..."
+    brew install uv >/dev/null 2>&1 && ok "uv instalado: $(uv --version 2>/dev/null | head -1)" \
+      || warn "brew install uv falló — instalalo manualmente: curl -LsSf https://astral.sh/uv/install.sh | sh"
+  else
+    warn "Ni uv ni Homebrew disponibles — instalá uv manualmente: curl -LsSf https://astral.sh/uv/install.sh | sh"
+  fi
+fi
+
+if command -v uv >/dev/null 2>&1; then
+  if command -v specify >/dev/null 2>&1; then
+    ok "specify CLI ya instalado"
+  else
+    info "Instalando specify-cli via uv..."
+    # Primero PyPI; si no resuelve, la forma oficial desde el repo de Spec Kit
+    uv tool install specify-cli >/dev/null 2>&1 \
+      || uv tool install specify-cli --from git+https://github.com/github/spec-kit.git >/dev/null 2>&1 \
+      || warn "specify-cli no se pudo instalar — manual: uv tool install specify-cli --from git+https://github.com/github/spec-kit.git"
+    if command -v specify >/dev/null 2>&1; then
+      ok "specify CLI instalado"
+    elif [[ -x "$HOME/.local/bin/specify" ]]; then
+      warn "specify quedó en ~/.local/bin pero no está en PATH — agregá: export PATH=\"\$HOME/.local/bin:\$PATH\""
+    fi
+  fi
+fi
+
+# ────────────────────────────────────────────────
 # 9. VERIFICACIÓN FINAL
 # ────────────────────────────────────────────────
 step "Verificación final"
