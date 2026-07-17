@@ -949,6 +949,8 @@ Los criterios que dependen de instalación real (correr `install.sh` sobre `~/.c
 
 ### Task 10: Nivel MUTATION del contrato — mutation testing por stack
 
+> **SUPERSEDED por S01.1 (2026-07-16):** la mutación pasó al gate por defecto, scoped a archivos afectados con presupuesto y umbrales bloqueantes; el nivel `MUTATION=1` fue eliminado. Ver spec §3. Esta tarea queda como registro histórico.
+
 Pedido por Efraín (2026-07-16): medir que los tests del TDD realmente testeen algo real, con Infection (PHP), Stryker (JS/TS) y mutant (Ruby). Tercer nivel del contrato: `MUTATION=1 bash .claude/verify.sh`. Nunca corre en el gate rápido del Stop (es lento por diseño).
 
 **Files:**

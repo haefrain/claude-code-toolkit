@@ -12,7 +12,7 @@
 
 ## Contrato por repo
 
-- `.claude/verify.sh` — **gate por defecto en cada Stop**: lint + typecheck + tests enfocados + **mutación SOLO de los archivos afectados** (Infection PHP / Stryker JS-TS / mutant Ruby, por diff e incremental). Presupuesto `MUTATE_MAX_FILES=10`: si se excede, la mutación se difiere al cierre de la tarjeta con aviso. Los mutantes que cuentan son los de lo cambiado — la deuda pre-existente no bloquea.
+- `.claude/verify.sh` — **gate por defecto en cada Stop**: lint + typecheck + tests enfocados + **mutación SOLO de los archivos afectados** (Infection PHP / Stryker JS-TS / mutant Ruby, por diff vs `VERIFY_BASE`). Presupuesto `MUTATE_MAX_FILES=10`: si se excede, la mutación se difiere al cierre de la tarjeta con aviso. Los mutantes que cuentan son los de lo cambiado — la deuda pre-existente no bloquea. El gate bloquea con sobrevivientes: Infection `--min-covered-msi` (80 default, `MIN_MSI` ajusta), mutant estricto por defecto, Stryker vía `thresholds.break` en su config.
 - `FULL=1 bash .claude/verify.sh` — suite completa + build: **SOLO a solicitud explícita de Efraín. Claude jamás la corre proactivamente** (ni al Stop, ni como "cierre", ni por iniciativa propia).
 - Repo sin contrato → crearlo con `/verify-setup` (detecta stack, usa plantillas de `~/.claude/templates/verify/`).
 - Repos `haefrain/*`: el contrato se comitea. Repos ajenos (bukhr/*): local + `.git/info/exclude`.

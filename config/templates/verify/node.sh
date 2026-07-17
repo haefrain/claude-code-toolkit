@@ -20,10 +20,12 @@ if [[ -n "$changed" ]]; then
   # Tests enfocados de lo tocado (jest; con vitest: vitest related --run <archivos>)
   $PM test -- --findRelatedTests $changed
 
-  # Mutación SOLO de los afectados — siempre, salvo exceder el presupuesto
+  # Mutación SOLO de los afectados — siempre, salvo exceder el presupuesto.
+  # OJO: para que BLOQUEE con mutantes sobrevivientes, stryker.conf debe definir
+  # thresholds.break (p. ej. 80) — sin eso Stryker sale 0 aunque escapen mutantes.
   n=$(printf '%s\n' "$changed" | grep -c . || true)
   if [[ "$n" -le "${MUTATE_MAX_FILES:-10}" ]]; then
-    npx stryker run --incremental --mutate "$(printf '%s' "$changed" | tr '\n' ',')"
+    npx stryker run --mutate "$(printf '%s' "$changed" | tr '\n' ',')"
   else
     echo "⏭️  Mutación diferida: $n archivos afectados (> ${MUTATE_MAX_FILES:-10}) — corréla al cierre de la tarjeta."
   fi
