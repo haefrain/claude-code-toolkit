@@ -68,11 +68,11 @@ fi
 
 Bootstrap del contrato en el repo actual:
 
-1. Detecta stack (lockfiles, `composer.json`, `Gemfile`, etc.) y scripts disponibles reales (lee `package.json`/`composer.json` — no inventa comandos).
+1. Detecta stack con precedencia determinista — el primero que matchee gana: `artisan`+`composer.json` (laravel, agregando al contrato los scripts del frontend si además hay `package.json` con `lint`/`typecheck`/`build` reales) > `package.json` (node, PM por lockfile) > `Gemfile` (rails) > generic. Scripts disponibles reales siempre leídos de `package.json`/`composer.json` — no inventa comandos.
 2. Genera `.claude/verify.sh` desde la plantilla correspondiente, con los comandos detectados y ejecutable (`chmod +x`).
 3. **Política de versionado:**
    - Remote `github.com/haefrain/*` → el archivo se comitea al repo.
-   - Remote ajeno (p. ej. `bukhr/*`) → se crea local y se agrega `.claude/verify.sh` a `.git/info/exclude` (mismo patrón que handoff).
+   - Remote ajeno (p. ej. `bukhr/*`) → se crea local y se agrega `.claude/verify.sh` al exclude vía `git rev-parse --git-path info/exclude` (compatible con worktrees, donde `.git` es un archivo y no un directorio; mismo patrón que handoff).
 4. Muestra el contrato generado y pide validar los comandos antes de darlo por bueno.
 
 ### 5. `load-context.sh` (modificado)
@@ -108,7 +108,7 @@ Se importa con `@claude-verification.md` desde `config/CLAUDE.md` (junto a RTK y
 | `stop_hook_active: true` | Cuenta como reintento normal; el contador es quien corta |
 | jq/git ausentes o error interno del hook | `exit 0` — el hook nunca rompe la sesión |
 | Checks lentos | Contrato rápido < 5 min por convención; timeout duro 600s |
-| Repos ajenos (bukhr/*) | Contrato local vía `.git/info/exclude`, nunca comiteado |
+| Repos ajenos (bukhr/*) | Contrato local vía `.git/info/exclude`, nunca comiteado (ruta resuelta con `--git-path`, compatible con worktrees) |
 
 ## Criterios de aceptación
 

@@ -8,13 +8,15 @@ Crea el contrato de verificación del repo actual. Seguí estos pasos EXACTOS:
 ## 1. Detectar el stack (no asumas — verificá archivos)
 
 ```bash
-root=$(git rev-parse --show-toplevel) && ls "$root/package.json" "$root/composer.json" "$root/Gemfile" "$root/artisan" 2>/dev/null; ls "$root"/pnpm-lock.yaml "$root"/yarn.lock "$root"/bun.lock* "$root"/package-lock.json 2>/dev/null
+root=$(git rev-parse --show-toplevel) && ls "$root/package.json" "$root/composer.json" "$root/Gemfile" "$root/artisan" 2>/dev/null && ls "$root"/pnpm-lock.yaml "$root"/yarn.lock "$root"/bun.lock* "$root"/package-lock.json 2>/dev/null
 ```
 
-- `package.json` → plantilla `node.sh` (PM según lockfile: pnpm-lock.yaml→`pnpm`, yarn.lock→`yarn`, bun.lock*→`bun run`, package-lock.json→`npm run`)
-- `artisan` + `composer.json` → plantilla `laravel.sh`
-- `Gemfile` → plantilla `rails.sh`
-- Ninguno → plantilla `generic.sh`
+Precedencia determinista — el primero que matchee gana:
+
+1. `artisan` + `composer.json` → plantilla `laravel.sh`. **Si además hay `package.json` con scripts `lint`/`typecheck`/`build` reales, agregá esos comandos del frontend al contrato** (leyendo los scripts reales — la regla de nunca inventar sigue aplicando).
+2. Si no, `package.json` → plantilla `node.sh` (PM según lockfile: pnpm-lock.yaml→`pnpm`, yarn.lock→`yarn`, bun.lock*→`bun run`, package-lock.json→`npm run`)
+3. Si no, `Gemfile` → plantilla `rails.sh`
+4. Ninguno → plantilla `generic.sh`
 
 ## 2. Leer los scripts REALES del repo
 
@@ -37,7 +39,13 @@ git -C "$root" remote get-url origin
 ```
 
 - Remote `github.com/haefrain/*` → agregá el archivo a git: `git -C "$root" add .claude/verify.sh` y sugerí comitearlo.
-- Remote ajeno (bukhr/*, etc.) → NO lo comitees: `grep -qxF ".claude/verify.sh" "$root/.git/info/exclude" || echo ".claude/verify.sh" >> "$root/.git/info/exclude"`
+- Remote ajeno (bukhr/*, etc.) → NO lo comitees, agregalo al exclude local (`--git-path` resuelve la ruta correcta tanto en repos normales como en worktrees, donde `.git` es un archivo, no un directorio):
+
+```bash
+exclude_file=$(git -C "$root" rev-parse --git-path info/exclude)
+[[ "$exclude_file" = /* ]] || exclude_file="$root/$exclude_file"
+grep -qxF ".claude/verify.sh" "$exclude_file" 2>/dev/null || echo ".claude/verify.sh" >> "$exclude_file"
+```
 
 ## 5. Validar
 
