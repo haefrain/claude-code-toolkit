@@ -17,14 +17,14 @@ Acciones que requieren decisión o ejecución personal de Efraín (las instalaci
 
 ## Semana 3 — Paralelismo y movilidad (S06/S08)
 
-- [ ] Definir keep-awake del equipo para acceso remoto 24/7: opciones `caffeinate -dims` en un LaunchAgent, app Amphetamine, o `sudo pmset -a sleep 0` (pregunta P11 del MD).
+- [ ] ⏸ POSPUESTO (decisión Efraín 2026-07-17): keep-awake del equipo para acceso remoto 24/7 — retomar cuando la movilidad sea prioridad (recomendación vigente: LaunchAgent con `caffeinate -dims`).
 - [ ] Instalar la app móvil de Claude y probar la pestaña **Code**; luego `/teleport` y `/remote-control` desde el celular contra una sesión viva del Mac.
 - [ ] Probar el flujo worktree: `claude --worktree <tema> --name "<tema>"` + `/color`.
 - [ ] Activar notificaciones de terminal.
 
 ## Semana 4 — SDD y loops (S04/S05) ✅ implementadas (primer loop productivo propio pendiente — P12)
 
-- [ ] Instalar specify CLI: `uv tool install specify-cli` (requiere [uv](https://docs.astral.sh/uv/)); verificar con `specify --help`.
+- [x] ~~Instalar specify CLI~~ — AUTOMATIZADO: `install.sh` instala uv + specify (decisión Efraín 2026-07-17); verificar con `specify --help`.
 - [ ] Elegir el repo piloto del primer track real (pregunta P8 del MD) y correr `/sdd-setup` ahí.
 - [ ] Instalar la GitHub App (`/install-github-app`) en repos `haefrain/*` para `@claude` en PRs (S07).
 - [ ] Decidir el primer `/loop` productivo propio y su `/schedule` nocturno (P12 del MD).
