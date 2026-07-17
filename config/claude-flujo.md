@@ -22,6 +22,7 @@
 - **Worktree de solo análisis:** uno dedicado a leer logs y correr queries, sin tocar código.
 - Al cerrar: limpiar worktrees/ramas mergeadas (`/branch-cleanup`).
 - Los subagentes de una misma sesión: JAMÁS dos escritores sobre el mismo repo a la vez.
+- **Subagentes y git (regla dura):** todo despacho lleva la prohibición enumerada de `git add/commit/merge/push/reset/checkout`; si un subagente cree que hace falta un commit, lo reporta como hallazgo. Merge y push los decide Efraín (o Claude solo con su OK explícito).
 
 ## CLAUDE.md y memoria (S07)
 

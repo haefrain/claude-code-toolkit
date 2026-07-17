@@ -1,6 +1,6 @@
 # Checklist manual for:efrain — adopción guía 2026 (S09)
 
-Acciones que solo Efraín puede ejecutar. Marcar al completar; Claude las recuerda pero no puede hacerlas.
+Acciones que requieren decisión o ejecución personal de Efraín (las instalaciones de herramientas — mutación, specify — Claude puede correrlas con tu OK explícito; están aquí porque decides tú cuándo y en qué repos). Las preguntas «P#» referencian el MD de preguntas del escritorio (`~/Desktop/preguntas-toolkit-2026-07-17.md`).
 
 ## Semana 1 — Verificación (S01) ✅ implementada
 
@@ -22,7 +22,7 @@ Acciones que solo Efraín puede ejecutar. Marcar al completar; Claude las recuer
 - [ ] Probar el flujo worktree: `claude --worktree <tema> --name "<tema>"` + `/color`.
 - [ ] Activar notificaciones de terminal.
 
-## Semana 4 — SDD y loops (S04/S05) ✅ S05 implementada
+## Semana 4 — SDD y loops (S04/S05) ✅ implementadas (primer loop productivo propio pendiente — P12)
 
 - [ ] Instalar specify CLI: `uv tool install specify-cli` (requiere [uv](https://docs.astral.sh/uv/)); verificar con `specify --help`.
 - [ ] Elegir el repo piloto del primer track real (pregunta P8 del MD) y correr `/sdd-setup` ahí.

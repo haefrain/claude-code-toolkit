@@ -134,7 +134,7 @@ Disponibles en Claude Code con `/nombre`:
 
 | Hook | Cuándo actúa | Qué hace |
 |---|---|---|
-| `SessionStart` | Al abrir Claude Code en cualquier repo | Carga handoff anterior + memorias + codegraph + capacidades; en repos `haefrain/*` también el backlog |
+| `SessionStart` | Al abrir Claude Code en cualquier repo | Carga handoff anterior + memorias + codegraph + capacidades; en repos `haefrain/*` también el backlog. Tras una compactación de contexto (matcher `compact`) reinyecta las reglas críticas |
 | `UserPromptSubmit` | Cada mensaje del usuario | Detecta intención y sugiere el script correcto |
 | `PostToolUse` | Tras editar un archivo | Detecta tests relacionados y recuerda correrlos; registra los archivos de código editados para la verificación al Stop |
 | `Stop` | Al terminar el turno | Corre el contrato de verificación si hubo código editado (bloquea la entrega si falla); luego genera handoff en `.claude/handoff/`; en `haefrain/*` recuerda cerrar issues |
