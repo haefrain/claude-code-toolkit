@@ -140,6 +140,24 @@ Disponibles en Claude Code con `/nombre`:
 | `Stop` | Al terminar el turno | Genera handoff en `.claude/handoff/` del repo; en `haefrain/*` recuerda cerrar issues |
 | `PreToolUse` | Antes de cada comando Bash | RTK filtra el output para ahorrar tokens |
 
+### Verificación al cierre (Sección 01 — guía 2026)
+
+El tip #1 del equipo de Claude Code: cerrar el ciclo de feedback. Si la sesión editó código,
+el hook Stop corre el contrato del repo antes de permitir la entrega:
+
+1. `post-tool-hook.sh` marca los archivos de código editados (por sesión, en `$TMPDIR`).
+2. Al parar, `verify-stop.sh` corre `.claude/verify.sh` del repo (modo rápido, < 5 min).
+3. Si falla → el stop se bloquea con la razón y Claude sigue arreglando (máx. 2 reintentos).
+4. Sin contrato → fallback barato (solo `lint`/`typecheck` detectados) + aviso para correr `/verify-setup`.
+
+**Contrato por repo:** `.claude/verify.sh` — rápido por defecto, `FULL=1` corre la suite completa.
+Se crea con `/verify-setup` desde plantillas por stack (`node`, `laravel`, `rails`, `generic`).
+En repos propios (`haefrain/*`) se comitea; en ajenos queda local vía `.git/info/exclude`.
+
+**Lineamientos globales:** `claude-verification.md` (importado en `CLAUDE.md`) — evidencia antes
+de afirmaciones, `/simplify` como cierre estándar, y la regla de compounding: cada corrección
+termina actualizando el CLAUDE.md del repo.
+
 ### Disparadores automáticos integrados en CLAUDE.md
 
 Claude usa los scripts automáticamente cuando detecta estas intenciones:
