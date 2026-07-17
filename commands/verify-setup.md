@@ -49,6 +49,8 @@ exclude_file=$(git -C "$root" rev-parse --git-path info/exclude)
 grep -qxF ".claude/verify.sh" "$exclude_file" 2>/dev/null || echo ".claude/verify.sh" >> "$exclude_file"
 ```
 
+- Sin remote `origin` (repo solo local) → tratalo como ajeno (exclude local) y pregúntale a Efraín si debería comitearse.
+
 ## 5. Validar
 
 1. Corré el contrato: `bash "$root/.claude/verify.sh"` — debe terminar en exit 0 sobre el repo limpio. Si falla por comandos inexistentes, corregí el contrato (no el repo).

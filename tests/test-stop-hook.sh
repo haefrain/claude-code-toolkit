@@ -1,9 +1,12 @@
 #!/usr/bin/env bash
-# Verifica que stop-hook.sh reenvíe el block de verify-stop.sh y no genere handoff al bloquear.
+# Verifica stop-hook.sh en sus tres escenarios: bloqueo (reenvía el block de
+# verify-stop.sh y no genera handoff), pase (sin JSON de bloqueo en stdout) y
+# anti-loop/systemMessage (lo reenvía y genera el handoff en silencio).
 set -uo pipefail
 SCRIPTS="$(cd "$(dirname "$0")/../scripts" && pwd)"
 TMPDIR="$(mktemp -d)"; export TMPDIR
 repo="$(mktemp -d)"; git -C "$repo" init -q
+trap 'rm -rf "$TMPDIR" "$repo"' EXIT
 fail() { echo "FAIL(stop-hook): $1"; exit 1; }
 inp='{"session_id":"s1","stop_hook_active":false,"transcript_path":""}'
 

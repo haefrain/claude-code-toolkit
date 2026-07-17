@@ -66,9 +66,9 @@
 
 **Hooks internos** (no llamar manualmente)
 - `session-start-hook.sh` — SessionStart, corre load-context.sh en cualquier repo + backlog si repo haefrain/*
-- `stop-hook.sh` — Stop, corre handoff-create.sh en cualquier repo + recordatorio de issues si haefrain/*
+- `stop-hook.sh` — Stop, corre verify-stop.sh primero (puede bloquear la entrega); corre handoff-create.sh en cualquier repo + recordatorio de issues si haefrain/*
 - `prompt-trigger-hook.sh` — UserPromptSubmit, inyecta recordatorio según keywords
-- `post-tool-hook.sh` — PostToolUse, recuerda correr tests tras editar código
+- `post-tool-hook.sh` — PostToolUse, recuerda correr tests tras editar código y registra código editado (marcador de sesión para verify-stop)
 - `verify-stop.sh` — invocado por stop-hook.sh: corre `.claude/verify.sh` del repo si hubo código editado; bloquea el stop si falla (máx. 2 reintentos)
 
 ## Slash commands (`~/.claude/commands/`)

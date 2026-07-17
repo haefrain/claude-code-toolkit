@@ -4,6 +4,7 @@ set -uo pipefail
 SCRIPTS="$(cd "$(dirname "$0")/../scripts" && pwd)"
 TMPDIR="$(mktemp -d)"; export TMPDIR
 repo="$(mktemp -d)"; git -C "$repo" init -q
+trap 'rm -rf "$TMPDIR" "$repo"' EXIT
 fail() { echo "FAIL(verify-stop): $1"; exit 1; }
 run() { echo '{"session_id":"v1","stop_hook_active":false}' \
   | (cd "$repo" && CLAUDE_PROJECT_DIR="$repo" bash "$SCRIPTS/verify-stop.sh"); }

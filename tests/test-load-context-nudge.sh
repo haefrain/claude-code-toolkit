@@ -3,6 +3,7 @@
 set -uo pipefail
 SCRIPTS="$(cd "$(dirname "$0")/../scripts" && pwd)"
 repo="$(mktemp -d)"; git -C "$repo" init -q
+trap 'rm -rf "$repo"' EXIT
 fail() { echo "FAIL(load-context-nudge): $1"; exit 1; }
 
 # 1. Repo sin contrato → el output menciona /verify-setup
