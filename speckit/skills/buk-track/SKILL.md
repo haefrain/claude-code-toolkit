@@ -20,7 +20,7 @@ Un track agrupa varias misiones y tiene 9 tabs propios como archivos `.md` en
    repo sin setup previo).
    **Repos ajenos** (remote no `haefrain/*` o sin remote): si `/sdd-setup` no corrió aún,
    ANTES de crear archivos agregá `docs/tracks/` al exclude local:
-   `ef=$(git rev-parse --git-path info/exclude); [[ "$ef" = /* ]] || ef="$(git rev-parse --show-toplevel)/$ef"; grep -qxF "docs/tracks/" "$ef" 2>/dev/null || echo "docs/tracks/" >> "$ef"`
+   `root=$(git rev-parse --show-toplevel); ef=$(git -C "$root" rev-parse --git-path info/exclude); [[ "$ef" = /* ]] || ef="$root/$ef"; grep -qxF "docs/tracks/" "$ef" 2>/dev/null || echo "docs/tracks/" >> "$ef"`
    — los artefactos SDD no se comitean a repos de terceros sin decisión de Efraín.
 4. **Entrevista de negocio (no inventar):** preguntar al usuario, en tandas cortas, lo
    mínimo para `01-negocio.md`: problema en dolores del usuario, JTBD, scope propuesto,
