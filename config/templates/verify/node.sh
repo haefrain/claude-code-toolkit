@@ -15,3 +15,8 @@ if [[ "${FULL:-0}" == "1" ]]; then
   $PM test
   $PM build
 fi
+
+if [[ "${MUTATION:-0}" == "1" ]]; then
+  # ── Mutation testing (lento): mide que los tests maten mutantes ──
+  npx stryker run
+fi

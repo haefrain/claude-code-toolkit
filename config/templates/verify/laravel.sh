@@ -12,3 +12,9 @@ if [[ "${FULL:-0}" == "1" ]]; then
   # ── Suite completa ──
   php artisan test
 fi
+
+if [[ "${MUTATION:-0}" == "1" ]]; then
+  # ── Mutation testing (lento): mide que los tests maten mutantes ──
+  vendor/bin/infection --min-msi=70 --threads=max
+  # Frontend JS/TS del mismo repo (si tiene tests): npx stryker run
+fi

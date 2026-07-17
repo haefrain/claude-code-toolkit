@@ -32,6 +32,8 @@ Luego EDITÁ `.claude/verify.sh` reemplazando los comandos de la plantilla por l
 - **Modo rápido** (siempre corre, presupuesto < 5 min): lint + typecheck + tests enfocados si son baratos.
 - **Bloque `FULL=1`**: suite completa + build.
 
+**Nivel MUTATION:** si el repo tiene config de mutation testing (`infection.json5`/`infection.json`, `stryker.conf.*`, `.mutant.yml`), dejá el bloque `MUTATION=1` de la plantilla con el comando real del repo. Si no la tiene, dejá el bloque como viene (la herramienta del stack queda sugerida) y mencionale a Efraín que existe: mide que los tests maten mutantes (MSI), no que solo pasen. En repos multi-stack (p. ej. Laravel o Rails con frontend JS/TS), el bloque `MUTATION=1` combina herramientas: Infection/mutant para el backend + Stryker para el frontend — cada una sobre su suite.
+
 ## 4. Política de versionado
 
 ```bash

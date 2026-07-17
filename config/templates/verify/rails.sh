@@ -11,3 +11,9 @@ if [[ "${FULL:-0}" == "1" ]]; then
   # ── Suite completa ──
   bundle exec rspec
 fi
+
+if [[ "${MUTATION:-0}" == "1" ]]; then
+  # ── Mutation testing (lento): mide que los tests maten mutantes ──
+  bundle exec mutant run
+  # Frontend JS/TS del mismo repo (si tiene tests): npx stryker run
+fi

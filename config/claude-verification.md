@@ -15,6 +15,7 @@
 - `.claude/verify.sh` — modo rápido (< 5 min) siempre; `FULL=1 bash .claude/verify.sh` corre la suite completa.
 - Repo sin contrato → crearlo con `/verify-setup` (detecta stack, usa plantillas de `~/.claude/templates/verify/`).
 - Repos `haefrain/*`: el contrato se comitea. Repos ajenos (bukhr/*): local + `.git/info/exclude`.
+- Tercer nivel: `MUTATION=1 bash .claude/verify.sh` — mutation testing (Infection PHP / Stryker JS-TS / mutant Ruby): mide que los tests realmente maten mutantes (MSI), no que solo pasen. Lento por diseño: usarlo antes de PRs importantes o en jobs nocturnos, nunca en el gate rápido del Stop.
 
 ## Prompts del repertorio (usarlos y auto-aplicarlos)
 

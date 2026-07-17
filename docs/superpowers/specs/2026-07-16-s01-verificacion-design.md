@@ -63,6 +63,7 @@ fi
 
 - Salida con código ≠ 0 = verificación fallida.
 - El toolkit trae plantillas por stack en `config/templates/verify/`: `node.sh` (npm/pnpm/yarn/bun por lockfile), `laravel.sh`, `rails.sh`, `generic.sh` (esqueleto comentado).
+- Tercer nivel opcional `MUTATION=1`: mutation testing por stack (Infection/Stryker/mutant) — nunca en el gate rápido; pedido de Efraín 2026-07-16.
 
 ### 4. Comando `/verify-setup` (nuevo: `commands/verify-setup.md`)
 

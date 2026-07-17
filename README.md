@@ -137,7 +137,7 @@ Disponibles en Claude Code con `/nombre`:
 | `SessionStart` | Al abrir Claude Code en cualquier repo | Carga handoff anterior + memorias + codegraph + capacidades; en repos `haefrain/*` también el backlog |
 | `UserPromptSubmit` | Cada mensaje del usuario | Detecta intención y sugiere el script correcto |
 | `PostToolUse` | Tras editar un archivo | Detecta tests relacionados y recuerda correrlos |
-| `Stop` | Al terminar el turno | Genera handoff en `.claude/handoff/` del repo; en `haefrain/*` recuerda cerrar issues |
+| `Stop` | Al terminar el turno | Corre el contrato de verificación si hubo código editado (bloquea la entrega si falla); luego genera handoff en `.claude/handoff/`; en `haefrain/*` recuerda cerrar issues |
 | `PreToolUse` | Antes de cada comando Bash | RTK filtra el output para ahorrar tokens |
 
 ### Verificación al cierre (Sección 01 — guía 2026)

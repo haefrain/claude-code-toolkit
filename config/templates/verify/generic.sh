@@ -14,3 +14,9 @@ if [[ "${FULL:-0}" == "1" ]]; then
   # <comando de build del repo>
   :
 fi
+
+if [[ "${MUTATION:-0}" == "1" ]]; then
+  # ── Mutation testing (lento): Infection (PHP) / Stryker (JS-TS) / mutant (Ruby) ──
+  # <comando de mutation testing del repo>
+  :
+fi
