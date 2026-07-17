@@ -16,7 +16,7 @@ Gestiona el modo voz bidireccional según el argumento (`$ARGUMENTS`):
 2. Confirma HABLANDO (corre en background para no bloquear):
 
 ```bash
-say -v "$(cat ~/.claude/voz-on)" "Modo voz activado. Te iré contando lo que hago."
+say -v "$(cat ~/.claude/voz-on)" "Modo voz activado. Te iré contando lo que hago." >/dev/null 2>&1 &
 ```
 
 3. A partir de ahora aplican las reglas de `~/.claude/claude-voz.md` (resumen hablado al final de cada respuesta sustantiva; versión detallada si Efraín la pide).
