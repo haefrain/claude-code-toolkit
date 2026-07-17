@@ -42,4 +42,10 @@ SIEMPRE responde en español. Código fuente, variables y commits pueden estar e
 3. **Al terminar:** cerrar issues completados + comentario con commit/PR. El hook Stop genera el handoff automáticamente; si la sesión tuvo decisiones importantes, enriquecelo con `/handoff`.
 4. **Si bloqueas:** comentar en el issue + label `blocked:external` o `needs-decision`.
 
+---
+
+## Verificación
+
+@claude-verification.md
+
 @RTK.md
