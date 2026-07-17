@@ -60,4 +60,10 @@ SIEMPRE responde en español. Código fuente, variables y commits pueden estar e
 
 @claude-sdd.md
 
+---
+
+## Flujo: plan, loops, worktrees, memoria y arsenal
+
+@claude-flujo.md
+
 @RTK.md

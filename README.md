@@ -186,6 +186,15 @@ Overlay de [GitHub Spec Kit](https://github.com/github/spec-kit) adaptado al pro
   trazabilidad JTBD→RF→S→CA→CP, FF reversibles con eliminación obligatoria.
 - Requiere `specify` CLI (`uv tool install specify-cli`) — instalación manual, ver checklist.
 
+### Flujo, arsenal y adopción (Secciones 03/04/06/07/08/09 — guía 2026)
+
+Lineamientos en `claude-flujo.md` (importado en `CLAUDE.md`): regla del plan (una frase → sin plan;
+re-planear si se tuerce), effort high/xhigh, loops como skills con ventana (patrón `/revisar-prs`),
+worktrees nombrados + `/color` + worktree de solo análisis, compounding de CLAUDE.md, allowlist de
+permisos por repo, y movilidad (`/teleport`/`/remote-control` + pestaña Code del celular).
+Nuevo hook: `post-compact-hook.sh` — SessionStart(compact) reinyecta las reglas críticas tras
+compactar contexto. Las acciones manuales de Efraín viven en **`docs/checklist-efrain.md`**.
+
 ### Disparadores automáticos integrados en CLAUDE.md
 
 Claude usa los scripts automáticamente cuando detecta estas intenciones:

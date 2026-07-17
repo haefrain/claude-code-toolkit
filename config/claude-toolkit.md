@@ -73,6 +73,7 @@
 - `prompt-trigger-hook.sh` — UserPromptSubmit, inyecta recordatorio según keywords
 - `post-tool-hook.sh` — PostToolUse, recuerda correr tests tras editar código y registra código editado (marcador de sesión para verify-stop)
 - `verify-stop.sh` — invocado por stop-hook.sh: corre `.claude/verify.sh` del repo si hubo código editado; bloquea el stop si falla (máx. 2 reintentos)
+- `post-compact-hook.sh` — SessionStart(compact), reinyecta reglas críticas tras compactar contexto
 
 ## Slash commands (`~/.claude/commands/`)
 
