@@ -48,4 +48,10 @@ SIEMPRE responde en español. Código fuente, variables y commits pueden estar e
 
 @claude-verification.md
 
+---
+
+## Modo voz
+
+@claude-voz.md
+
 @RTK.md

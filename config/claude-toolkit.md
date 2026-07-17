@@ -25,6 +25,7 @@
 | inicializar codegraph / indexar proyecto | `/codegraph-init` |
 | cómo funciona X / qué llama a X / impacto de cambiar X | tools MCP codegraph (`codegraph_context`, `codegraph_trace`, `codegraph_impact`) si hay índice — ANTES de grep manual |
 | configurar verificación / verify del repo | `/verify-setup` (genera `.claude/verify.sh`) |
+| modo voz / háblame / activa la voz / deja de hablar | `/voz on` · `/voz off` (reglas en claude-voz.md) |
 
 ❌ Anti-patrón: `gh issue list` crudo / leer archivos uno por uno / explicarle al usuario que use el comando.
 
@@ -78,7 +79,7 @@
 `/find-usages` `/search-docs` `/test-focus` `/ci-status` `/failing-tests`
 `/db-schema` `/pr-context` `/commit-ready` `/branch-cleanup` `/rate-limit-audit`
 `/auth-audit` `/pii-in-prisma` `/gdpr-check` `/explain-diff` `/undo-last`
-`/handoff` `/load-context` `/codegraph-init` `/verify-setup`
+`/handoff` `/load-context` `/codegraph-init` `/verify-setup` `/voz`
 
 ## Máximo aprovechamiento de capacidades
 
