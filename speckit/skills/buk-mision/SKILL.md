@@ -22,6 +22,16 @@ correr `/sdd-setup`** y esperar confirmación del usuario — sin `.specify/` lo
 3. Sincronizar tabs iniciales (ver procedimiento) y registrar el kick-off en `00-bitacora.md`.
 4. Datos de negocio faltantes → `[PENDIENTE: …]`; preguntar, no inventar.
 
+## Ecosistema Buk (plugin claude-toolkit@buk-skills-marketplace)
+
+Si el plugin de Buk está activo en la sesión, COMPONER con sus skills oficiales en vez
+de duplicar: **`checkpoint`** gestiona los kick-offs/checkpoints oficiales (usarla al
+cerrar cada fase y reflejar los acuerdos en `00-bitacora.md`); **`user-discovery-report`**
+arma el informe de señales (Amplitude/Clarity/Sentry) para Discovery;
+**`edit-google-docs-by-buk`** permite volcar los tabs sincronizados al Google Doc oficial
+del template — ofrecerlo tras cada sync (solo con OK explícito del usuario). Sin el
+plugin, todo funciona igual con los archivos locales.
+
 ## Fase 2 · Discovery
 1. `/speckit.clarify` para cerrar ambigüedades con el usuario.
 2. `/speckit.plan` — antes, explorar el código real del repo; la técnica se basa en el

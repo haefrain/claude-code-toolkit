@@ -24,8 +24,13 @@ Un track agrupa varias misiones y tiene 9 tabs propios como archivos `.md` en
    — los artefactos SDD no se comitean a repos de terceros sin decisión de Efraín.
 4. **Entrevista de negocio (no inventar):** preguntar al usuario, en tandas cortas, lo
    mínimo para `01-negocio.md`: problema en dolores del usuario, JTBD, scope propuesto,
-   candidatos a pilotos, criterios de éxito (qué/cómo/cuándo). Todo dato de negocio,
+   candidatos a pilotos, **stakeholder voz del negocio** (obligatorio — si no hay, la
+   justificación va en el tab), criterios de éxito (qué/cómo/cuándo). Todo dato de negocio,
    cliente o métrica que el usuario no dé queda como `[PENDIENTE: …]` — NUNCA se inventa.
+   **Guardrail problema-primero (lineamiento jul-2026):** si el problema llega fraseado
+   como solución («Buk no cuenta con X…»), ayudá a reformularlo desde el dolor del
+   cliente ANTES de escribir el tab — con señales y entrevistas, no con features. Con el
+   plugin de Buk activo, ofrecé `user-discovery-report` para el anexo de señales.
 5. **Llenar lo inferible del código:** en `02-requerimientos.md` (RNF técnicos
    evidentes), `03-tecnica.md` (arquitectura actual, integraciones existentes, diagrama
    mermaid del modelo de datos REAL) y `04-alternativas.md` (opciones técnicas reales

@@ -16,6 +16,7 @@ Proceso de desarrollo dirigido por specs adaptado a Buk (Pre kick-off → Discov
 4. **Política por propietario:** repos `haefrain/*` → artefactos SDD comiteados; repos ajenos (bukhr/*) o sin remote → exclude local + `CLAUDE.local.md` (JAMÁS tocar el CLAUDE.md del equipo).
 5. La constitution del repo (`.specify/memory/constitution.md`) manda sobre costumbres y prompts puntuales.
 6. SDD aplicará también a bugs grandes con un flujo ligero (por diseñar — no forzar la ceremonia completa de misión a un bugfix).
+7. **Ecosistema Buk (plugin `claude-toolkit@buk-skills-marketplace`):** componer, no duplicar — `checkpoint` para kick-offs/checkpoints oficiales, `user-discovery-report` para señales en Discovery, `edit-google-docs-by-buk` para volcar tabs al Doc oficial (con OK explícito). Guardrail problema-primero del All-Hands jul-2026: jamás aceptar problemas fraseados como solución («Buk no cuenta con X»).
 
 ## Disparadores
 
