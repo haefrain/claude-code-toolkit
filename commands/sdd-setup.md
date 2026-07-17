@@ -48,7 +48,7 @@ exclude_file=$(git -C "$root" rev-parse --git-path info/exclude)
 for p in .specify/ docs/plantillas/ docs/tracks/ specs/ CLAUDE.local.md ".claude/commands/speckit.*.md"; do
   grep -qxF "$p" "$exclude_file" 2>/dev/null || echo "$p" >> "$exclude_file"
 done
-git -C "$root" status --porcelain | grep -E "speckit|specify" || echo "✅ exclude cubre todo lo del SDD"
+git -C "$root" status --porcelain | grep -E "speckit|specify|plantillas|tracks|specs/|CLAUDE.local" || echo "✅ exclude cubre todo lo del SDD"
 ```
 
 (La última línea es el chequeo: si algo del SDD sigue apareciendo en `git status`, agregalo al exclude antes de continuar.)
