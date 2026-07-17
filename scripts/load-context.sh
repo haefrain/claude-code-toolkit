@@ -92,14 +92,38 @@ if [[ -n "$git_root" && ! -f "$git_root/.claude/verify.sh" ]]; then
   capabilities="${capabilities}- **Verificación:** ⚠️ este repo no tiene \`.claude/verify.sh\` — corré \`/verify-setup\` para crear el contrato de verificación\n"
 fi
 
+# ── 5. Tooling del repo (sincronizado de bukhr/buk-agentic-hub) ─
+# Comandos de desarrollo verificados por el equipo (~/.claude/tooling/<repo>.md,
+# poblado por sync-buk-tooling.sh). Nombre por remote origin; fallback: carpeta.
+tooling_content=""
+if [[ -n "$git_root" ]]; then
+  remote_url=$(git -C "$cwd" remote get-url origin 2>/dev/null || true)
+  repo_name=""
+  [[ -n "$remote_url" ]] && repo_name=$(basename "$remote_url" .git)
+  [[ -z "$repo_name" ]] && repo_name=$(basename "$git_root")
+  tooling_file="$HOME/.claude/tooling/${repo_name}.md"
+  [[ -f "$tooling_file" ]] && tooling_content=$(cat "$tooling_file" 2>/dev/null || true)
+fi
+
 # ── Salir en silencio si no hay nada que inyectar ─────────────
-if [[ -z "$handoff_content" && -z "$memory_content" && -z "$codegraph_status" && -z "$capabilities" ]]; then
+if [[ -z "$handoff_content" && -z "$memory_content" && -z "$codegraph_status" && -z "$capabilities" && -z "$tooling_content" ]]; then
   exit 0
 fi
 
 # ── Emitir el contexto enriquecido ─────────────────────────────
 echo "<!-- load-context: contexto enriquecido cargado -->"
 echo ""
+
+if [[ -n "$tooling_content" ]]; then
+  echo "## Tooling del repo (buk-agentic-hub)"
+  echo ""
+  echo "$tooling_content"
+  echo ""
+  echo "Usá ESTOS comandos (verificados por el equipo) para tests/linter/type checker — no adivines ni improvises otros."
+  echo ""
+  echo "---"
+  echo ""
+fi
 
 if [[ -n "$handoff_content" ]]; then
   echo "## Continuación de sesión anterior"
