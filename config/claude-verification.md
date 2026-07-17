@@ -12,10 +12,11 @@
 
 ## Contrato por repo
 
-- `.claude/verify.sh` — modo rápido (< 5 min) siempre; `FULL=1 bash .claude/verify.sh` corre la suite completa.
+- `.claude/verify.sh` — **gate por defecto en cada Stop**: lint + typecheck + tests enfocados + **mutación SOLO de los archivos afectados** (Infection PHP / Stryker JS-TS / mutant Ruby, por diff vs `VERIFY_BASE`). Presupuesto `MUTATE_MAX_FILES=10`: si se excede, la mutación se difiere al cierre de la tarjeta con aviso. Los mutantes que cuentan son los de lo cambiado — la deuda pre-existente no bloquea. El gate bloquea con sobrevivientes: Infection `--min-covered-msi` (80 default, `MIN_MSI` ajusta), mutant estricto por defecto, Stryker vía `thresholds.break` en su config.
+- `FULL=1 bash .claude/verify.sh` — suite completa + build: **SOLO a solicitud explícita de Efraín. Claude jamás la corre proactivamente** (ni al Stop, ni como "cierre", ni por iniciativa propia).
 - Repo sin contrato → crearlo con `/verify-setup` (detecta stack, usa plantillas de `~/.claude/templates/verify/`).
 - Repos `haefrain/*`: el contrato se comitea. Repos ajenos (bukhr/*): local + `.git/info/exclude`.
-- Tercer nivel: `MUTATION=1 bash .claude/verify.sh` — mutation testing (Infection PHP / Stryker JS-TS / mutant Ruby): mide que los tests realmente maten mutantes (MSI), no que solo pasen. Lento por diseño: usarlo antes de PRs importantes o en jobs nocturnos, nunca en el gate rápido del Stop.
+- Repos con infra pesada de tests (docker, boots de minutos): la mutación del gate se comenta y se corre al cierre de tarjeta/PR — el Stop tiene timeout de 600s.
 - ⚠️ **Frontera de confianza:** el contrato y el fallback son código del repo y se ejecutan automáticamente al Stop, fuera del sistema de permisos. En repos no confiables (clones de terceros), revisá `.claude/verify.sh` y los scripts de `package.json`/`composer.json` antes de trabajar con código.
 
 ## Prompts del repertorio (usarlos y auto-aplicarlos)

@@ -29,10 +29,18 @@ mkdir -p "$root/.claude" && cp ~/.claude/templates/verify/<plantilla> "$root/.cl
 ```
 
 Luego EDITÁ `.claude/verify.sh` reemplazando los comandos de la plantilla por los reales detectados en el paso 2:
-- **Modo rápido** (siempre corre, presupuesto < 5 min): lint + typecheck + tests enfocados si son baratos.
-- **Bloque `FULL=1`**: suite completa + build.
+- **Gate por defecto** (corre en cada Stop): lint + typecheck + tests enfocados de lo tocado + **mutación SOLO de los archivos afectados**.
+- **Bloque `FULL=1`**: suite completa + build — **SOLO a solicitud explícita de Efraín**, nunca proactivo.
 
-**Nivel MUTATION:** si el repo tiene config de mutation testing (`infection.json5`/`infection.json`, `stryker.conf.*`, `.mutant.yml`), dejá el bloque `MUTATION=1` de la plantilla con el comando real del repo. Si no la tiene, dejá el bloque como viene (la herramienta del stack queda sugerida) y mencionale a Efraín que existe: mide que los tests maten mutantes (MSI), no que solo pasen. En repos multi-stack (p. ej. Laravel o Rails con frontend JS/TS), el bloque `MUTATION=1` combina herramientas: Infection/mutant para el backend + Stryker para el frontend — cada una sobre su suite.
+**Mutación de afectados (siempre activa, con presupuesto):**
+- Las plantillas ya calculan los archivos afectados (diff vs `VERIFY_BASE`, default `main` — ajustá a `master` si aplica; si la base no existe, la mutación se omite con aviso) y mutan solo eso: Infection `--git-diff-base` (PHP), Stryker `--mutate` (JS/TS), mutant `--since` (Ruby).
+- **Para que el gate BLOQUEE con mutantes sobrevivientes:** Infection ya trae `--min-covered-msi` (default 80, ajustable con `MIN_MSI`); mutant bloquea por defecto; Stryker SOLO bloquea si `stryker.conf` define `thresholds.break` (p. ej. 80) — configuralo al hacer el setup o la mutación queda informativa.
+- Nota de semántica 2-dot: si la base avanza y modifica archivos tras el punto de branch, esos archivos entran al diff — mantené la rama rebasada para que el gate solo mire lo tuyo.
+- Presupuesto: si hay más de `MUTATE_MAX_FILES` (default 10) afectados, la plantilla difiere la mutación con un aviso — se corre al cierre de la tarjeta, no en cada Stop.
+- La mutación necesita tests verdes: si los tests enfocados fallan, el gate bloquea ahí y la mutación ni corre.
+- Si el repo NO tiene la herramienta instalada/configurada (`infection.json*`, `stryker.conf.*`, `.mutant.yml`), comentá el bloque de mutación y avisale a Efraín qué instalar — jamás dejes en el gate un comando que no existe.
+- **Repos con infra pesada de tests** (suite en docker, boots de minutos — p. ej. lms, buk-webapp): comentá la mutación del gate y anotá en el contrato que se corre al cierre de tarjeta/PR; el Stop tiene timeout de 600s.
+- Multi-stack (Laravel/Rails con frontend JS/TS): combiná herramientas — Infection/mutant para backend + Stryker para el frontend, cada una scoped a sus archivos afectados.
 
 ## 4. Política de versionado
 
