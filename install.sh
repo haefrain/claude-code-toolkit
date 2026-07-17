@@ -153,6 +153,12 @@ mkdir -p "$CLAUDE_DIR/commands"
 cp "$REPO_DIR/commands/"*.md "$CLAUDE_DIR/commands/"
 ok "$(ls "$CLAUDE_DIR/commands/"*.md | wc -l) comandos instalados (los tuyos con otros nombres se conservan)"
 
+# Plantillas de contrato de verificación (Sección 01)
+mkdir -p "$CLAUDE_DIR/templates/verify"
+cp "$REPO_DIR/config/templates/verify/"*.sh "$CLAUDE_DIR/templates/verify/"
+chmod +x "$CLAUDE_DIR/templates/verify/"*.sh
+ok "$(ls "$CLAUDE_DIR/templates/verify/"*.sh | wc -l | xargs) plantillas de verificación instaladas"
+
 # ────────────────────────────────────────────────
 # 6. CLAUDE.MD — merge inteligente
 # ────────────────────────────────────────────────
@@ -162,11 +168,13 @@ step "Configurando CLAUDE.md"
 cp "$REPO_DIR/config/claude-issues.md"  "$CLAUDE_DIR/claude-issues.md"
 cp "$REPO_DIR/config/claude-toolkit.md" "$CLAUDE_DIR/claude-toolkit.md"
 cp "$REPO_DIR/config/RTK.md"            "$CLAUDE_DIR/RTK.md"
-ok "Archivos de referencia instalados (claude-issues.md, claude-toolkit.md, RTK.md)"
+cp "$REPO_DIR/config/claude-verification.md" "$CLAUDE_DIR/claude-verification.md"
+ok "Archivos de referencia instalados (claude-issues.md, claude-toolkit.md, RTK.md, claude-verification.md)"
 
 CLAUDE_MD="$CLAUDE_DIR/CLAUDE.md"
 TOOLKIT_IMPORTS="@claude-issues.md
-@claude-toolkit.md"
+@claude-toolkit.md
+@claude-verification.md"
 
 if [[ ! -f "$CLAUDE_MD" ]]; then
   # Instalación limpia: copiar directo
@@ -200,6 +208,7 @@ else
       warn "Para activarlos, agregá al final de tu CLAUDE.md:"
       echo "  @claude-issues.md"
       echo "  @claude-toolkit.md"
+      echo "  @claude-verification.md"
       ;;
     *)  # 1 o cualquier otra cosa
       # Agregar @imports al final si no existen ya
@@ -208,10 +217,17 @@ else
         echo "# ── Claude Code Toolkit (auto-instalado) ──"
         echo "@claude-issues.md"
         echo "@claude-toolkit.md"
+        echo "@claude-verification.md"
       } >> "$CLAUDE_MD"
       ok "CLAUDE.md mergeado — @imports agregados al final de tu configuración existente"
       ;;
   esac
+fi
+
+# Instalaciones previas del toolkit: agregar el import de verificación si falta
+if [[ -f "$CLAUDE_MD" ]] && grep -q "@claude-toolkit.md" "$CLAUDE_MD" && ! grep -q "@claude-verification.md" "$CLAUDE_MD"; then
+  printf '\n@claude-verification.md\n' >> "$CLAUDE_MD"
+  ok "Import @claude-verification.md agregado a CLAUDE.md existente"
 fi
 
 # ────────────────────────────────────────────────
@@ -278,6 +294,11 @@ _append_hook "SessionStart"      '{"matcher":"startup","hooks":[{"type":"command
 _append_hook "UserPromptSubmit"  '{"hooks":[{"type":"command","command":"bash ~/.claude/scripts/prompt-trigger-hook.sh"}]}'
 _append_hook "PostToolUse"       '{"matcher":"Edit|Write","hooks":[{"type":"command","command":"bash ~/.claude/scripts/post-tool-hook.sh"}]}'
 _append_hook "Stop"              '{"hooks":[{"type":"command","command":"bash ~/.claude/scripts/stop-hook.sh"}]}'
+# La verificación puede correr lint/tests: subir el timeout del Stop hook a 600s (idempotente)
+current_settings=$(printf '%s' "$current_settings" | jq \
+  '(.hooks.Stop // []) |= map(
+     .hooks |= map(if .command == "bash ~/.claude/scripts/stop-hook.sh" then . + {timeout: 600} else . end)
+   )')
 # RTK PreToolUse: rtk init --global lo deja como "manual step" en modo no-interactivo — lo registramos acá
 command -v rtk >/dev/null 2>&1 && \
 _append_hook "PreToolUse"        '{"matcher":"Bash","hooks":[{"type":"command","command":"rtk hook claude"}]}'
