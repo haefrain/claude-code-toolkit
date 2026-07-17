@@ -171,6 +171,21 @@ Si Efraín pide «detallada», lee la versión completa limpiada para audio (sin
 Las reglas viven en `claude-voz.md` (importado en `CLAUDE.md`); sin el marcador `~/.claude/voz-on`
 no suena nada jamás.
 
+### SDD Buk — tracks y misiones (Sección 05 — guía 2026)
+
+Overlay de [GitHub Spec Kit](https://github.com/github/spec-kit) adaptado al proceso Buk
+(Pre kick-off → Discovery → Delivery → Rollout), vendoreado en `speckit/` como fuente de verdad:
+
+- **Skills globales** `buk-track` (tracks, 9 tabs en `docs/tracks/`; funciona en cualquier repo
+  con plantillas globales de fallback) y `buk-mision` (4 fases sobre `/speckit.*` + sincronización
+  de tabs; exige `.specify/` y ofrece `/sdd-setup` si falta).
+- **`/sdd-setup`**: bootstrapea el repo — `specify init` + constitution + overrides + plantillas +
+  reglas del agente, con política por propietario: `haefrain/*` comitea; ajenos → exclude local +
+  `CLAUDE.local.md` (nunca se toca el CLAUDE.md del equipo).
+- Constitution: TDD innegociable, verificación como gate (Sección 01), slicing ≤ 1 mes,
+  trazabilidad JTBD→RF→S→CA→CP, FF reversibles con eliminación obligatoria.
+- Requiere `specify` CLI (`uv tool install specify-cli`) — instalación manual, ver checklist.
+
 ### Disparadores automáticos integrados en CLAUDE.md
 
 Claude usa los scripts automáticamente cuando detecta estas intenciones:

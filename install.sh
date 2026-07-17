@@ -159,6 +159,18 @@ cp "$REPO_DIR/config/templates/verify/"*.sh "$CLAUDE_DIR/templates/verify/"
 chmod +x "$CLAUDE_DIR/templates/verify/"*.sh
 ok "$(ls "$CLAUDE_DIR/templates/verify/"*.sh | wc -l | xargs) plantillas de verificación instaladas"
 
+# SDD Buk (buk-speckit): skills globales + plantillas/overrides/constitution
+mkdir -p "$CLAUDE_DIR/templates/buk-speckit" "$CLAUDE_DIR/skills"
+cp    "$REPO_DIR/speckit/constitution.md" "$CLAUDE_DIR/templates/buk-speckit/"
+cp    "$REPO_DIR/speckit/CLAUDE.buk.md"   "$CLAUDE_DIR/templates/buk-speckit/"
+rm -rf "$CLAUDE_DIR/templates/buk-speckit/overrides" "$CLAUDE_DIR/templates/buk-speckit/plantillas"
+cp -r "$REPO_DIR/speckit/overrides"  "$CLAUDE_DIR/templates/buk-speckit/"
+cp -r "$REPO_DIR/speckit/plantillas" "$CLAUDE_DIR/templates/buk-speckit/"
+rm -rf "$CLAUDE_DIR/skills/buk-track" "$CLAUDE_DIR/skills/buk-mision"
+cp -r "$REPO_DIR/speckit/skills/buk-track"  "$CLAUDE_DIR/skills/"
+cp -r "$REPO_DIR/speckit/skills/buk-mision" "$CLAUDE_DIR/skills/"
+ok "SDD Buk instalado: skills buk-track/buk-mision globales + overlay en templates/buk-speckit/"
+
 # ────────────────────────────────────────────────
 # 6. CLAUDE.MD — merge inteligente
 # ────────────────────────────────────────────────
@@ -170,13 +182,15 @@ cp "$REPO_DIR/config/claude-toolkit.md" "$CLAUDE_DIR/claude-toolkit.md"
 cp "$REPO_DIR/config/RTK.md"            "$CLAUDE_DIR/RTK.md"
 cp "$REPO_DIR/config/claude-verification.md" "$CLAUDE_DIR/claude-verification.md"
 cp "$REPO_DIR/config/claude-voz.md"          "$CLAUDE_DIR/claude-voz.md"
-ok "Archivos de referencia instalados (claude-issues.md, claude-toolkit.md, RTK.md, claude-verification.md, claude-voz.md)"
+cp "$REPO_DIR/config/claude-sdd.md"          "$CLAUDE_DIR/claude-sdd.md"
+ok "Archivos de referencia instalados (claude-issues.md, claude-toolkit.md, RTK.md, claude-verification.md, claude-voz.md, claude-sdd.md)"
 
 CLAUDE_MD="$CLAUDE_DIR/CLAUDE.md"
 TOOLKIT_IMPORTS="@claude-issues.md
 @claude-toolkit.md
 @claude-verification.md
-@claude-voz.md"
+@claude-voz.md
+@claude-sdd.md"
 
 if [[ ! -f "$CLAUDE_MD" ]]; then
   # Instalación limpia: copiar directo
@@ -212,6 +226,7 @@ else
       echo "  @claude-toolkit.md"
       echo "  @claude-verification.md"
       echo "  @claude-voz.md"
+      echo "  @claude-sdd.md"
       ;;
     *)  # 1 o cualquier otra cosa
       # Agregar @imports al final si no existen ya
@@ -222,6 +237,7 @@ else
         echo "@claude-toolkit.md"
         echo "@claude-verification.md"
         echo "@claude-voz.md"
+        echo "@claude-sdd.md"
       } >> "$CLAUDE_MD"
       ok "CLAUDE.md mergeado — @imports agregados al final de tu configuración existente"
       ;;
@@ -229,7 +245,7 @@ else
 fi
 
 # Instalaciones previas del toolkit: agregar imports nuevos si faltan (idempotente)
-for imp in claude-verification.md claude-voz.md; do
+for imp in claude-verification.md claude-voz.md claude-sdd.md; do
   if [[ -f "$CLAUDE_MD" ]] && grep -q "@claude-toolkit.md" "$CLAUDE_MD" && ! grep -q "@${imp}" "$CLAUDE_MD"; then
     printf '\n@%s\n' "$imp" >> "$CLAUDE_MD"
     ok "Import @${imp} agregado a CLAUDE.md existente"
