@@ -8,7 +8,7 @@ Crea el contrato de verificación del repo actual. Seguí estos pasos EXACTOS:
 ## 1. Detectar el stack (no asumas — verificá archivos)
 
 ```bash
-root=$(git rev-parse --show-toplevel) && ls "$root/package.json" "$root/composer.json" "$root/Gemfile" "$root/artisan" 2>/dev/null && ls "$root"/pnpm-lock.yaml "$root"/yarn.lock "$root"/bun.lock* "$root"/package-lock.json 2>/dev/null
+root=$(git rev-parse --show-toplevel) && { ls "$root/package.json" "$root/composer.json" "$root/Gemfile" "$root/artisan" 2>/dev/null; ls "$root"/pnpm-lock.yaml "$root"/yarn.lock "$root"/bun.lock* "$root"/package-lock.json 2>/dev/null; }
 ```
 
 Precedencia determinista — el primero que matchee gana:
