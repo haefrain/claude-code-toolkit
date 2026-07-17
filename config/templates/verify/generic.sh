@@ -11,9 +11,9 @@ cd "$(git rev-parse --show-toplevel)"
 # <tests enfocados de los archivos afectados>
 
 # ── Mutación SOLO de archivos afectados (siempre que exista herramienta) ──
-# Infection (PHP): vendor/bin/infection --git-diff-base=main --git-diff-filter=AM --only-covered
-# Stryker (JS/TS): npx stryker run --incremental --mutate <archivos-afectados>
-# mutant (Ruby):   bundle exec mutant run --since main
+# Infection (PHP): vendor/bin/infection --git-diff-base=main --git-diff-filter=AM --only-covered --min-covered-msi=80
+# Stryker (JS/TS): npx stryker run --mutate <archivos-afectados>  (bloquea solo con thresholds.break en stryker.conf)
+# mutant (Ruby):   bundle exec mutant run --since main  (estricto por defecto)
 
 if [[ "${FULL:-0}" == "1" ]]; then
   # ── Suite completa + build — SOLO pedido explícito de Efraín ──

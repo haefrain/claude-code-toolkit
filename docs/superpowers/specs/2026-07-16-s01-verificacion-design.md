@@ -63,7 +63,7 @@ fi
 
 - Salida con código ≠ 0 = verificación fallida.
 - El toolkit trae plantillas por stack en `config/templates/verify/`: `node.sh` (npm/pnpm/yarn/bun por lockfile), `laravel.sh`, `rails.sh`, `generic.sh` (esqueleto comentado).
-- **Revisión S01.1 (2026-07-16, pedido de Efraín):** la mutación deja de ser un nivel aparte y pasa al **gate por defecto, scoped a los archivos afectados** (diff working tree + rama vs `VERIFY_BASE`; Infection `--git-diff-base`, Stryker `--incremental --mutate`, mutant `--since`), con presupuesto `MUTATE_MAX_FILES=10` (excedido → se difiere con aviso). `FULL=1` (suite completa + build) queda **exclusivamente a solicitud explícita de Efraín** — nunca proactivo. Repos con infra pesada de tests: mutación comentada en el gate, se corre al cierre de tarjeta. El nivel `MUTATION=1` se elimina.
+- **Revisión S01.1 (2026-07-16, pedido de Efraín):** la mutación deja de ser un nivel aparte y pasa al **gate por defecto, scoped a los archivos afectados** (diff working tree + rama vs `VERIFY_BASE`; Infection `--git-diff-base`, Stryker `--mutate`, mutant `--since`), con presupuesto `MUTATE_MAX_FILES=10` (excedido → se difiere con aviso). `FULL=1` (suite completa + build) queda **exclusivamente a solicitud explícita de Efraín** — nunca proactivo. Repos con infra pesada de tests: mutación comentada en el gate, se corre al cierre de tarjeta. El nivel `MUTATION=1` se elimina.
 
 ### 4. Comando `/verify-setup` (nuevo: `commands/verify-setup.md`)
 
