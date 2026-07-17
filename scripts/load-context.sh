@@ -87,6 +87,11 @@ if command -v codegraph >/dev/null 2>&1 && [[ -n "$git_root" && ! -d "$git_root/
   capabilities="${capabilities}- **CodeGraph:** disponible pero SIN índice en este repo — sugerí \`/codegraph-init\` al usuario si la sesión es de desarrollo\n"
 fi
 
+# Contrato de verificación (Sección 01) — nudge si falta
+if [[ -n "$git_root" && ! -f "$git_root/.claude/verify.sh" ]]; then
+  capabilities="${capabilities}- **Verificación:** ⚠️ este repo no tiene \`.claude/verify.sh\` — corré \`/verify-setup\` para crear el contrato de verificación\n"
+fi
+
 # ── Salir en silencio si no hay nada que inyectar ─────────────
 if [[ -z "$handoff_content" && -z "$memory_content" && -z "$codegraph_status" && -z "$capabilities" ]]; then
   exit 0

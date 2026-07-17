@@ -24,6 +24,7 @@
 | genera handoff / guardar estado / cerrar sesión | `/handoff` (también automático via Stop hook) |
 | inicializar codegraph / indexar proyecto | `/codegraph-init` |
 | cómo funciona X / qué llama a X / impacto de cambiar X | tools MCP codegraph (`codegraph_context`, `codegraph_trace`, `codegraph_impact`) si hay índice — ANTES de grep manual |
+| configurar verificación / verify del repo | `/verify-setup` (genera `.claude/verify.sh`) |
 
 ❌ Anti-patrón: `gh issue list` crudo / leer archivos uno por uno / explicarle al usuario que use el comando.
 
@@ -68,6 +69,7 @@
 - `stop-hook.sh` — Stop, corre handoff-create.sh en cualquier repo + recordatorio de issues si haefrain/*
 - `prompt-trigger-hook.sh` — UserPromptSubmit, inyecta recordatorio según keywords
 - `post-tool-hook.sh` — PostToolUse, recuerda correr tests tras editar código
+- `verify-stop.sh` — invocado por stop-hook.sh: corre `.claude/verify.sh` del repo si hubo código editado; bloquea el stop si falla (máx. 2 reintentos)
 
 ## Slash commands (`~/.claude/commands/`)
 
@@ -76,7 +78,7 @@
 `/find-usages` `/search-docs` `/test-focus` `/ci-status` `/failing-tests`
 `/db-schema` `/pr-context` `/commit-ready` `/branch-cleanup` `/rate-limit-audit`
 `/auth-audit` `/pii-in-prisma` `/gdpr-check` `/explain-diff` `/undo-last`
-`/handoff` `/load-context` `/codegraph-init`
+`/handoff` `/load-context` `/codegraph-init` `/verify-setup`
 
 ## Máximo aprovechamiento de capacidades
 
