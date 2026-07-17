@@ -43,6 +43,8 @@ Un track agrupa varias misiones y tiene 9 tabs propios como archivos `.md` en
 - **Checkpoints:** cada vez que el usuario reporte un checkpoint, añadir la entrada a
   `00-bitacora.md` (agenda/acuerdos/action items) y propagar los cambios acordados al
   tab que corresponda (scope → 01, RNF → 02, arquitectura → 03, misiones → 05, GTM → 07).
+  Con el plugin de Buk activo, gestionar el checkpoint oficial con su skill `checkpoint`
+  y reflejar los acuerdos aquí (componer, no duplicar).
 - **Misiones:** al crear o cerrar una misión (skill buk-mision), actualizar la tabla de
   `index.md` (estado + link a `specs/NNN-slug/`) y `05-estrategia-desarrollo.md`.
   Proponer siempre solo las próximas 2–3 misiones.
