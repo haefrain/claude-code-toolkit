@@ -54,4 +54,10 @@ SIEMPRE responde en español. Código fuente, variables y commits pueden estar e
 
 @claude-voz.md
 
+---
+
+## SDD (tracks y misiones)
+
+@claude-sdd.md
+
 @RTK.md
