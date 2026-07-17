@@ -944,3 +944,93 @@ Repasar `docs/superpowers/specs/2026-07-16-s01-verificacion-design.md` sección 
 - Nudge de SessionStart → `tests/test-load-context-nudge.sh`.
 
 Los criterios que dependen de instalación real (correr `install.sh` sobre `~/.claude` y probar el flujo en vivo) quedan para el cierre de la rama, con aprobación de Efraín.
+
+---
+
+### Task 10: Nivel MUTATION del contrato — mutation testing por stack
+
+Pedido por Efraín (2026-07-16): medir que los tests del TDD realmente testeen algo real, con Infection (PHP), Stryker (JS/TS) y mutant (Ruby). Tercer nivel del contrato: `MUTATION=1 bash .claude/verify.sh`. Nunca corre en el gate rápido del Stop (es lento por diseño).
+
+**Files:**
+- Modify: `config/templates/verify/node.sh`, `laravel.sh`, `rails.sh`, `generic.sh` (bloque MUTATION al final)
+- Modify: `commands/verify-setup.md` (detección de config de mutación)
+- Modify: `config/claude-verification.md` (lineamiento del tercer nivel)
+- Modify: `docs/superpowers/specs/2026-07-16-s01-verificacion-design.md` (convención del contrato)
+
+**Interfaces:**
+- Consumes: convención rápido/`FULL=1` de Task 4.
+- Produces: convención `MUTATION=1` que la S05 (SDD) usará como gate de Delivery.
+
+- [ ] **Step 1: Bloque MUTATION en las 4 plantillas** (añadir AL FINAL de cada una, después del bloque `FULL`)
+
+`node.sh`:
+
+```bash
+
+if [[ "${MUTATION:-0}" == "1" ]]; then
+  # ── Mutation testing (lento): mide que los tests maten mutantes ──
+  npx stryker run
+fi
+```
+
+`laravel.sh`:
+
+```bash
+
+if [[ "${MUTATION:-0}" == "1" ]]; then
+  # ── Mutation testing (lento): mide que los tests maten mutantes ──
+  vendor/bin/infection --min-msi=70 --threads=max
+fi
+```
+
+`rails.sh`:
+
+```bash
+
+if [[ "${MUTATION:-0}" == "1" ]]; then
+  # ── Mutation testing (lento): mide que los tests maten mutantes ──
+  bundle exec mutant run
+fi
+```
+
+`generic.sh`:
+
+```bash
+
+if [[ "${MUTATION:-0}" == "1" ]]; then
+  # ── Mutation testing (lento): Infection (PHP) / Stryker (JS-TS) / mutant (Ruby) ──
+  # <comando de mutation testing del repo>
+  :
+fi
+```
+
+- [ ] **Step 2: Detección en commands/verify-setup.md** — añadir al final de la sección `## 3. Generar el contrato`:
+
+```markdown
+
+**Nivel MUTATION:** si el repo tiene config de mutation testing (`infection.json5`/`infection.json`, `stryker.conf.*`, `.mutant.yml`), dejá el bloque `MUTATION=1` de la plantilla con el comando real del repo. Si no la tiene, dejá el bloque como viene (la herramienta del stack queda sugerida) y mencionale a Efraín que existe: mide que los tests maten mutantes (MSI), no que solo pasen.
+```
+
+- [ ] **Step 3: Lineamiento en config/claude-verification.md** — añadir al final de la sección `## Contrato por repo`:
+
+```markdown
+- Tercer nivel: `MUTATION=1 bash .claude/verify.sh` — mutation testing (Infection PHP / Stryker JS-TS / mutant Ruby): mide que los tests realmente maten mutantes (MSI), no que solo pasen. Lento por diseño: usarlo antes de PRs importantes o en jobs nocturnos, nunca en el gate rápido del Stop.
+```
+
+- [ ] **Step 4: Convención en la spec** — en `docs/superpowers/specs/2026-07-16-s01-verificacion-design.md`, sección `### 3. Contrato por repo`, añadir tras la línea de las plantillas:
+
+```markdown
+- Tercer nivel opcional `MUTATION=1`: mutation testing por stack (Infection/Stryker/mutant) — nunca en el gate rápido; pedido de Efraín 2026-07-16.
+```
+
+- [ ] **Step 5: Verificar**
+
+Run: `for f in config/templates/verify/*.sh; do bash -n "$f" && echo "OK $f"; done && bash .claude/verify.sh`
+Expected: `OK` × 4 y `✅ Todos los tests pasaron`
+
+- [ ] **Step 6: Commit**
+
+```bash
+git add config/templates/verify/ commands/verify-setup.md config/claude-verification.md docs/superpowers/specs/2026-07-16-s01-verificacion-design.md
+git commit -m "feat(verify): nivel MUTATION del contrato — Infection/Stryker/mutant por stack"
+```
