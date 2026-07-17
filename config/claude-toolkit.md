@@ -65,7 +65,8 @@
 
 **Handoff & Contexto**
 - `handoff-create.sh` — genera `{repo}/.claude/handoff/YYYYMMDD-HHMM.md` al cerrar sesión (cualquier repo git; excluido de git via `.git/info/exclude`). Retiene los 10 más recientes.
-- `load-context.sh` — al iniciar sesión carga: handoff anterior + memorias del proyecto + estado codegraph + inventario de capacidades (commands/skills/agents/MCP del repo y globales). Silencioso si no hay nada.
+- `load-context.sh` — al iniciar sesión carga: handoff anterior + memorias del proyecto + estado codegraph + inventario de capacidades (commands/skills/agents/MCP del repo y globales) + tooling del repo si existe en `~/.claude/tooling/<repo>.md`. Silencioso si no hay nada.
+- `sync-buk-tooling.sh` — sincroniza los `tooling.md` de bukhr/buk-agentic-hub a `~/.claude/tooling/` (comandos de test/lint/typecheck verificados por el equipo; datos internos de Buk, solo locales). Correrlo cuando el hub actualice tooling.
 
 **Hooks internos** (no llamar manualmente)
 - `session-start-hook.sh` — SessionStart, corre load-context.sh en cualquier repo + backlog si repo haefrain/*
