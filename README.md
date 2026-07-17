@@ -162,6 +162,15 @@ termina actualizando el CLAUDE.md del repo.
 
 > ⚠️ **Frontera de confianza:** el contrato y el fallback son código del repo y corren automáticamente al Stop. En repos no confiables, revisá `.claude/verify.sh` y los scripts de `package.json` antes de trabajar. El timeout de 600s del hook solo queda activo tras re-correr `install.sh`.
 
+### Modo voz bidireccional (Sección 02 — guía 2026)
+
+Efraín dicta (`/voice`, fn-fn) y Claude responde hablando: `/voz on` activa el modo — al final de
+cada respuesta sustantiva Claude habla un resumen de 1–3 frases con el TTS de macOS (`say`, voz
+Paulina por defecto; `/voz <nombre>` la cambia, `/voz off` lo apaga, `/voz estado` consulta).
+Si Efraín pide «detallada», lee la versión completa limpiada para audio (sin markdown ni código).
+Las reglas viven en `claude-voz.md` (importado en `CLAUDE.md`); sin el marcador `~/.claude/voz-on`
+no suena nada jamás.
+
 ### Disparadores automáticos integrados en CLAUDE.md
 
 Claude usa los scripts automáticamente cuando detecta estas intenciones:

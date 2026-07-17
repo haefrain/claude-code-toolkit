@@ -169,12 +169,14 @@ cp "$REPO_DIR/config/claude-issues.md"  "$CLAUDE_DIR/claude-issues.md"
 cp "$REPO_DIR/config/claude-toolkit.md" "$CLAUDE_DIR/claude-toolkit.md"
 cp "$REPO_DIR/config/RTK.md"            "$CLAUDE_DIR/RTK.md"
 cp "$REPO_DIR/config/claude-verification.md" "$CLAUDE_DIR/claude-verification.md"
-ok "Archivos de referencia instalados (claude-issues.md, claude-toolkit.md, RTK.md, claude-verification.md)"
+cp "$REPO_DIR/config/claude-voz.md"          "$CLAUDE_DIR/claude-voz.md"
+ok "Archivos de referencia instalados (claude-issues.md, claude-toolkit.md, RTK.md, claude-verification.md, claude-voz.md)"
 
 CLAUDE_MD="$CLAUDE_DIR/CLAUDE.md"
 TOOLKIT_IMPORTS="@claude-issues.md
 @claude-toolkit.md
-@claude-verification.md"
+@claude-verification.md
+@claude-voz.md"
 
 if [[ ! -f "$CLAUDE_MD" ]]; then
   # Instalación limpia: copiar directo
@@ -209,6 +211,7 @@ else
       echo "  @claude-issues.md"
       echo "  @claude-toolkit.md"
       echo "  @claude-verification.md"
+      echo "  @claude-voz.md"
       ;;
     *)  # 1 o cualquier otra cosa
       # Agregar @imports al final si no existen ya
@@ -218,17 +221,20 @@ else
         echo "@claude-issues.md"
         echo "@claude-toolkit.md"
         echo "@claude-verification.md"
+        echo "@claude-voz.md"
       } >> "$CLAUDE_MD"
       ok "CLAUDE.md mergeado — @imports agregados al final de tu configuración existente"
       ;;
   esac
 fi
 
-# Instalaciones previas del toolkit: agregar el import de verificación si falta
-if [[ -f "$CLAUDE_MD" ]] && grep -q "@claude-toolkit.md" "$CLAUDE_MD" && ! grep -q "@claude-verification.md" "$CLAUDE_MD"; then
-  printf '\n@claude-verification.md\n' >> "$CLAUDE_MD"
-  ok "Import @claude-verification.md agregado a CLAUDE.md existente"
-fi
+# Instalaciones previas del toolkit: agregar imports nuevos si faltan (idempotente)
+for imp in claude-verification.md claude-voz.md; do
+  if [[ -f "$CLAUDE_MD" ]] && grep -q "@claude-toolkit.md" "$CLAUDE_MD" && ! grep -q "@${imp}" "$CLAUDE_MD"; then
+    printf '\n@%s\n' "$imp" >> "$CLAUDE_MD"
+    ok "Import @${imp} agregado a CLAUDE.md existente"
+  fi
+done
 
 # ────────────────────────────────────────────────
 # 7. SETTINGS.JSON — merge seguro (append, nunca reemplaza)
