@@ -150,9 +150,11 @@ el hook Stop corre el contrato del repo antes de permitir la entrega:
 3. Si falla → el stop se bloquea con la razón y Claude sigue arreglando (máx. 2 reintentos).
 4. Sin contrato → fallback barato (solo `lint`/`typecheck` detectados) + aviso para correr `/verify-setup`.
 
-**Contrato por repo:** `.claude/verify.sh` — rápido por defecto, `FULL=1` corre la suite completa.
-Se crea con `/verify-setup` desde plantillas por stack (`node`, `laravel`, `rails`, `generic`).
-En repos propios (`haefrain/*`) se comitea; en ajenos queda local vía `.git/info/exclude`.
+**Contrato por repo:** `.claude/verify.sh` — el gate por defecto corre lint + typecheck + tests
+enfocados + **mutación solo de los archivos afectados** (Infection/Stryker/mutant por diff,
+presupuesto `MUTATE_MAX_FILES=10`); `FULL=1` (suite completa + build) corre **solo a solicitud
+explícita**. Se crea con `/verify-setup` desde plantillas por stack (`node`, `laravel`, `rails`,
+`generic`). En repos propios (`haefrain/*`) se comitea; en ajenos queda local vía `.git/info/exclude`.
 
 **Lineamientos globales:** `claude-verification.md` (importado en `CLAUDE.md`) — evidencia antes
 de afirmaciones, `/simplify` como cierre estándar, y la regla de compounding: cada corrección

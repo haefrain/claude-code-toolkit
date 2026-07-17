@@ -1,22 +1,23 @@
 #!/usr/bin/env bash
-# Contrato de verificación — rápido por defecto, FULL=1 corre la suite completa.
+# Contrato de verificación — gate por defecto en cada Stop.
+# FULL=1 corre la suite completa: SOLO a solicitud explícita de Efraín.
 # Generado por /verify-setup — COMPLETÁ con los comandos del repo.
 set -euo pipefail
 cd "$(git rev-parse --show-toplevel)"
 
-# ── Rápido (< 5 min): lint + typecheck + tests enfocados ──
+# ── Gate rápido: lint + typecheck + tests enfocados de lo tocado ──
 # <comando de lint del repo>
 # <comando de typecheck del repo>
+# <tests enfocados de los archivos afectados>
+
+# ── Mutación SOLO de archivos afectados (siempre que exista herramienta) ──
+# Infection (PHP): vendor/bin/infection --git-diff-base=main --git-diff-filter=AM --only-covered
+# Stryker (JS/TS): npx stryker run --incremental --mutate <archivos-afectados>
+# mutant (Ruby):   bundle exec mutant run --since main
 
 if [[ "${FULL:-0}" == "1" ]]; then
-  # ── Suite completa + build ──
+  # ── Suite completa + build — SOLO pedido explícito de Efraín ──
   # <comando de tests del repo>
   # <comando de build del repo>
-  :
-fi
-
-if [[ "${MUTATION:-0}" == "1" ]]; then
-  # ── Mutation testing (lento): Infection (PHP) / Stryker (JS-TS) / mutant (Ruby) ──
-  # <comando de mutation testing del repo>
   :
 fi
