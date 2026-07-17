@@ -26,7 +26,8 @@
 
 ## CLAUDE.md y memoria (S07)
 
-- **Regla de oro (compounding):** toda corrección de Efraín termina actualizando el CLAUDE.md del repo (ya es regla dura en claude-verification.md).
+- **Regla de oro (compounding):** toda corrección de Efraín termina actualizando el CLAUDE.md del repo (ya es regla dura en claude-verification.md). El "cómo" con el plugin de Buk activo: pipeline `lessons-learned` (captura en `docs/lessons/`) → `lessons-to-config` (promueve clasificado a comentarios/docs/skills/CLAUDE.md).
+- **Retros CAPACWA:** `/prepare-retro` (plugin de Buk) antes de cada retrospectiva — obligatoria por lineamiento jul-2026.
 - **Auto-memoria:** hechos duraderos (preferencias, entornos, decisiones) → memoria persistente; NO guardar lo que el repo ya registra.
 - **Notas por tarea:** en trabajos largos, mantener notas en el repo (o handoff enriquecido con `/handoff`) y que el CLAUDE.md del repo las referencie.
 - **En PRs:** con la GitHub App instalada, `@claude` en comentarios deja el aprendizaje para todo el equipo (instalación pendiente — checklist).

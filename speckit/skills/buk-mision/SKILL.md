@@ -18,9 +18,22 @@ correr `/sdd-setup`** y esperar confirmación del usuario — sin `.specify/` lo
 ## Fase 1 · Pre kick-off
 1. Confirmar el track (leer `docs/tracks/<slug>/` completo antes de especificar; si no
    existe, ofrecer crearlo con buk-track o marcar misión aislada).
-2. Correr `/speckit.specify` con el problema/tarea que dé el usuario + contexto del track.
-3. Sincronizar tabs iniciales (ver procedimiento) y registrar el kick-off en `00-bitacora.md`.
-4. Datos de negocio faltantes → `[PENDIENTE: …]`; preguntar, no inventar.
+2. **Guardrail problema-primero (aplica SIEMPRE, con o sin track):** si el problema llega
+   fraseado como solución («Buk no cuenta con X…»), reformularlo desde el dolor del
+   cliente ANTES de especificar — misma regla del tab 01-negocio del track.
+3. Correr `/speckit.specify` con el problema/tarea que dé el usuario + contexto del track.
+4. Sincronizar tabs iniciales (ver procedimiento) y registrar el kick-off en `00-bitacora.md`.
+5. Datos de negocio faltantes → `[PENDIENTE: …]`; preguntar, no inventar.
+
+## Ecosistema Buk (plugin claude-toolkit@buk-skills-marketplace)
+
+Si el plugin de Buk está activo en la sesión, COMPONER con sus skills oficiales en vez
+de duplicar: **`checkpoint`** gestiona los kick-offs/checkpoints oficiales (usarla al
+cerrar cada fase y reflejar los acuerdos en `00-bitacora.md`); **`user-discovery-report`**
+arma el informe de señales (Amplitude/Clarity/Sentry) para Discovery;
+**`edit-google-docs-by-buk`** permite volcar los tabs sincronizados al Google Doc oficial
+del template — ofrecerlo tras cada sync (solo con OK explícito del usuario). Sin el
+plugin, todo funciona igual con los archivos locales.
 
 ## Fase 2 · Discovery
 1. `/speckit.clarify` para cerrar ambigüedades con el usuario.
@@ -43,8 +56,9 @@ correr `/sdd-setup`** y esperar confirmación del usuario — sin `.specify/` lo
    plan de rollback, instrumentación y checklist del revisor. `/speckit.checklist` puede
    generar checklists de calidad adicionales.
 2. Recordar la tarjeta de **eliminación de la FF** al llegar al 100%.
-3. Cierre: guiar `08-retro.md`, actualizar el track (index + estrategia + bitácora vía
-   buk-track) y responder la pregunta CLAVE de la retro.
+3. Cierre: guiar `08-retro.md` (con el plugin de Buk activo, `/prepare-retro` prepara el
+   insumo con métricas y señales del equipo), actualizar el track (index + estrategia +
+   bitácora vía buk-track) y responder la pregunta CLAVE de la retro.
 
 ## Procedimiento de sincronización de tabs
 
